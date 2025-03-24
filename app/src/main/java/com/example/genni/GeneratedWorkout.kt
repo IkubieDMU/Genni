@@ -1,5 +1,6 @@
 package com.example.genni
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,13 +21,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,63 +45,99 @@ import com.example.genni.ui.theme.GenniTheme
 import com.example.genni.ui.theme.deepPurple
 import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.royalPurple
+import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
 import kotlin.random.Random
 
 @Composable
 fun GeneratedWorkoutScreen() {
-    Column(modifier = Modifier.fillMaxSize().background(white).verticalScroll(rememberScrollState())) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Text("Generated Workout", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = royalPurple, textAlign = TextAlign.Center)
-        Spacer(modifier = Modifier.height(20.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender)))
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 24.dp)
+    ) {
+        Text(
+            "Generated Workout",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = white,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Column {
-            val exerciseNum = 4 // No. of workouts Generated...
+        val exerciseNum = 10 // Number of workouts generated
+        val workoutList = listOf(
+            "Push-Ups", "Bench Press", "Incline Dumbbell Press", "Chest Fly", "Dips",
+            "Pull-Ups", "Deadlifts", "Bent-Over Rows", "Lat Pulldown", "Seated Cable Rows",
+            "Squats", "Lunges", "Leg Press", "Calf Raises", "Hamstring Curls",
+            "Shoulder Press", "Lateral Raises", "Front Raises", "Shrugs", "Face Pulls",
+            "Bicep Curls", "Triceps Dips", "Hammer Curls", "Overhead Triceps Extension", "Preacher Curls"
+        )
 
-            for (i in 1..exerciseNum) {
-                val randomSetsNum = Random.nextInt(3,6) // 3-6 Sets
-                val randomRepsNum = Random.nextInt(3,20) // 3-20 Reps
-                val randomRestTimeNum = Random.nextInt(1,5) // 1-5 mins rest
-                val randomWorkoutNum = Random.nextInt(0,24)
-                // Array of Workouts (Sample)
-                val workoutList = listOf(
-                    "Push-Ups", "Bench Press", "Incline Dumbbell Press", "Chest Fly", "Dips",  // Chest
-                    "Pull-Ups", "Deadlifts", "Bent-Over Rows", "Lat Pulldown", "Seated Cable Rows",  // Back
-                    "Squats", "Lunges", "Leg Press", "Calf Raises", "Hamstring Curls",  // Legs
-                    "Shoulder Press", "Lateral Raises", "Front Raises", "Shrugs", "Face Pulls",  // Shoulders
-                    "Bicep Curls", "Triceps Dips", "Hammer Curls", "Overhead Triceps Extension", "Preacher Curls"  // Arms
-                )
+        for (i in 1..exerciseNum) {
+            val randomSetsNum = Random.nextInt(3, 6) // 3-6 Sets
+            val randomRepsNum = Random.nextInt(3, 20) // 3-20 Reps
+            val randomRestTimeNum = Random.nextInt(1, 5) // 1-5 mins rest
+            val randomWorkout = workoutList[Random.nextInt(workoutList.size)]
 
-                Text("Exercise ${i} -> ${workoutList[randomWorkoutNum]}", color = royalPurple, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-                WorkoutBlock(randomSetsNum.toString(), randomRepsNum.toString(), randomRestTimeNum.toString())
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-            Icon(Icons.Default.PlayArrow,null, tint = deepPurple, modifier = Modifier.size(120.dp).align(Alignment.CenterHorizontally))
+            WorkoutCard(i, randomWorkout, randomSetsNum, randomRepsNum, randomRestTimeNum)
+            Spacer(modifier = Modifier.height(16.dp))
         }
-
     }
 }
 
 @Composable
-fun WorkoutBlock(sets:String,reps:String,restTime:String) {
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+fun WorkoutCard(index: Int, workoutName: String, sets: Int, reps: Int, restTime: Int) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
         Row(
-            modifier = Modifier.height(110.dp).width(360.dp).background(emeraldGreen, shape = RoundedCornerShape(15.dp)).padding(15.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Home,null, tint = white, modifier = Modifier.size(70.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Column{
-                Text("$sets Sets", color = white, fontWeight = FontWeight.Bold)
-                Text("$reps Reps", color = white, fontWeight = FontWeight.Bold)
-                Text("Rest: ${restTime}min", color = white, fontWeight = FontWeight.Bold)
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(emeraldGreen, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                /*Image(
+                    painter = painterResource(id = R.drawable.gym_logo),
+                    contentDescription = "Workout Icon",
+                    modifier = Modifier.size(50.dp),
+                    contentScale = ContentScale.Crop
+                )*/
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Exercise $index: $workoutName",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = deepPurple
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Sets: $sets | Reps: $reps | Rest: $restTime min", fontSize = 14.sp, color = Color.Gray)
             }
         }
     }
 }
 
-/*
+
+
 @Preview(showBackground = true)
 @Composable
 fun GeneratedWorkoutScreenPreview() {
     GenniTheme { GeneratedWorkoutScreen() }
-}*/
+}
