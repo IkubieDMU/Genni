@@ -19,7 +19,9 @@ import com.example.genni.ui.theme.GenniTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.genni.viewmodels.AuthViewModel
 import com.example.genni.viewmodels.ForgetPasswordViewModel
+import com.example.genni.viewmodels.HomeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,8 +47,8 @@ fun App() {
     val navigationController = rememberNavController()
 
     NavHost(navController = navigationController, startDestination = Screens.LoginScreen.screen) {
-        composable(Screens.LoginScreen.screen) { LoginScreen(navigationController) }
-        composable(Screens.HomeScreen.screen) { HomeScreen(navigationController) }
+        composable(Screens.LoginScreen.screen) { LoginScreen(navigationController,AuthViewModel()) }
+        composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel()) }
         composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController)}
         composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel())}
         composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen() }

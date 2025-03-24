@@ -21,11 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -51,10 +47,14 @@ fun ForgotPasswordScreen(nc: NavController, viewModel: ForgetPasswordViewModel) 
     val uiState by viewModel.uiState.collectAsState()
 
     Box(
-        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))),
         contentAlignment = Alignment.Center
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(modifier = Modifier.height(16.dp))
             Text("Forgot Password?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
             Spacer(modifier = Modifier.height(16.dp))
@@ -99,11 +99,11 @@ fun ForgotPasswordScreen(nc: NavController, viewModel: ForgetPasswordViewModel) 
 }
 
 
-//@Preview(showBackground = true)
-//@Composable
-//fun ForgetPasswordScreenPreview() {
-//    GenniTheme {
-//        val nc = rememberNavController()
-//        ForgotPasswordScreen(nc)
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+fun ForgetPasswordScreenPreview() {
+    GenniTheme {
+        val nc = rememberNavController()
+        ForgotPasswordScreen(nc, ForgetPasswordViewModel())
+    }
+}
