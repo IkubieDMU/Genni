@@ -47,14 +47,13 @@ fun ForgotPasswordScreen(nc: NavController, viewModel: ForgetPasswordViewModel) 
     val uiState by viewModel.uiState.collectAsState()
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))),
+        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))),
         contentAlignment = Alignment.Center
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Spacer(modifier = Modifier.height(16.dp))
             Text("Forgot Password?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
             Spacer(modifier = Modifier.height(16.dp))

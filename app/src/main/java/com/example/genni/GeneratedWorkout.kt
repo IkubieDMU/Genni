@@ -1,5 +1,7 @@
 package com.example.genni
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,15 +27,21 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
@@ -41,16 +49,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.genni.models.Workout
 import com.example.genni.ui.theme.GenniTheme
 import com.example.genni.ui.theme.deepPurple
 import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.royalPurple
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
+import com.example.genni.viewmodels.WorkoutViewModel
 import kotlin.random.Random
 
 @Composable
-fun GeneratedWorkoutScreen() {
+fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel) {
+    val workouts by remember { derivedStateOf { viewModel.workouts }}
+    val context = LocalContext.current.applicationContext
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -68,50 +81,33 @@ fun GeneratedWorkoutScreen() {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        val exerciseNum = 10 // Number of workouts generated
-        val workoutList = listOf(
-            "Push-Ups", "Bench Press", "Incline Dumbbell Press", "Chest Fly", "Dips",
-            "Pull-Ups", "Deadlifts", "Bent-Over Rows", "Lat Pulldown", "Seated Cable Rows",
-            "Squats", "Lunges", "Leg Press", "Calf Raises", "Hamstring Curls",
-            "Shoulder Press", "Lateral Raises", "Front Raises", "Shrugs", "Face Pulls",
-            "Bicep Curls", "Triceps Dips", "Hammer Curls", "Overhead Triceps Extension", "Preacher Curls"
-        )
-
-        for (i in 1..exerciseNum) {
-            val randomSetsNum = Random.nextInt(3, 6) // 3-6 Sets
-            val randomRepsNum = Random.nextInt(3, 20) // 3-20 Reps
-            val randomRestTimeNum = Random.nextInt(1, 5) // 1-5 mins rest
-            val randomWorkout = workoutList[Random.nextInt(workoutList.size)]
-
-            WorkoutCard(i, randomWorkout, randomSetsNum, randomRepsNum, randomRestTimeNum)
+        workouts.forEach{ workout ->
+            WorkoutCard(workout)
             Spacer(modifier = Modifier.height(16.dp))
         }
+
+        Column(modifier = Modifier.size(100.dp).align(Alignment.CenterHorizontally)) {
+            PlayButton(context)
+        }
+
+
+        }
     }
-}
 
 @Composable
-fun WorkoutCard(index: Int, workoutName: String, sets: Int, reps: Int, restTime: Int) {
+fun WorkoutCard(workout: Workout) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(emeraldGreen, shape = CircleShape),
+                modifier = Modifier.size(80.dp).background(emeraldGreen, shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                /*Image(
+                /*Image( //TODO: Do something with this later
                     painter = painterResource(id = R.drawable.gym_logo),
                     contentDescription = "Workout Icon",
                     modifier = Modifier.size(50.dp),
@@ -122,15 +118,35 @@ fun WorkoutCard(index: Int, workoutName: String, sets: Int, reps: Int, restTime:
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Exercise $index: $workoutName",
+                    "Exercise ${workout.index}: ${workout.name}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = deepPurple
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Sets: $sets | Reps: $reps | Rest: $restTime min", fontSize = 14.sp, color = Color.Gray)
+                Text("Sets: ${workout.sets} | Reps: ${workout.reps} | Rest: ${workout.restTime} min(s)", fontSize = 14.sp, color = Color.Gray)
             }
         }
+    }
+}
+
+@Composable
+fun PlayButton(context: Context) {
+    IconButton(
+        onClick = {
+            Toast.makeText(context, "Generating Workout!!", Toast.LENGTH_SHORT).show()
+        },
+        modifier = Modifier
+            .size(60.dp)  // Circular button size
+            .shadow(8.dp, CircleShape)  // Adds a nice shadow effect
+            .background(deepPurple, CircleShape)  // Background color
+    ) {
+        Icon(
+            imageVector = Icons.Default.PlayArrow,
+            contentDescription = "Start Workout",
+            tint = Color.White,
+            modifier = Modifier.size(36.dp)  // Adjust icon size
+        )
     }
 }
 
@@ -139,5 +155,5 @@ fun WorkoutCard(index: Int, workoutName: String, sets: Int, reps: Int, restTime:
 @Preview(showBackground = true)
 @Composable
 fun GeneratedWorkoutScreenPreview() {
-    GenniTheme { GeneratedWorkoutScreen() }
+    GenniTheme { GeneratedWorkoutScreen(WorkoutViewModel()) }
 }
