@@ -18,14 +18,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +49,7 @@ import com.example.genni.ui.theme.deepPurple
 import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.viewmodels.HomeViewModel
+import androidx.compose.runtime.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,36 +79,47 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val context = LocalContext.current
+                var selectedWorkout by remember { mutableStateOf<String?>(null) }
 
                 // Welcome Text
-                Text(
-                    "Welcome Back!",
-                    fontSize = 35.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Text("Welcome Back!", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = Color.White)
 
-                Text(
-                    "Your AI-Powered Workout Partner",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 16.sp
-                )
+                Text("Your AI-Powered Workout Partner", color = Color.White.copy(alpha = 0.8f), fontSize = 16.sp)
 
                 Spacer(modifier = Modifier.height(40.dp))
 
                 // 2x2 Workout Grid
                 val workoutTitles = listOf("Muscle Groups", "Sets & Reps", "Equipment", "Duration")
+
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     for (i in 0..1) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(20.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             for (j in 0..1) {
                                 val index = i * 2 + j
                                 WorkoutBox(workoutTitles[index]) {
-                                    viewModel.selectWorkout(workoutTitles[index], context)
+                                    selectedWorkout = workoutTitles[index] // Set selected workout for popup
                                 }
                             }
                         }
                     }
+                }
+
+                // Show Popup when a workout is clicked
+                if (selectedWorkout != null) {
+                    AlertDialog(
+                        onDismissRequest = { selectedWorkout = null }, // Close popup when dismissed
+                        confirmButton = {
+                            TextButton(onClick = { selectedWorkout = null }) {
+                                Text("OK", color = Color.White)
+                            }
+                        },
+                        title = { Text("Workout Info", color = Color.White) },
+                        text = { Text("You selected: $selectedWorkout", color = Color.White.copy(alpha = 0.8f)) }
+                    )
+
                 }
 
                 Spacer(modifier = Modifier.height(50.dp))
