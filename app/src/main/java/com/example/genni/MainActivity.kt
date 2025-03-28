@@ -41,14 +41,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App() {
     // * App Navigation Logic *
-
     val navigationController = rememberNavController()
-
     NavHost(navController = navigationController, startDestination = Screens.LoginScreen.screen) {
         composable(Screens.LoginScreen.screen) { LoginScreen(navigationController,AuthViewModel()) }
         composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel()) }
         composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController)}
         composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel())}
-        composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(WorkoutViewModel()) }
+        composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(WorkoutViewModel(),navigationController) }
+        composable(Screens.WorkoutSimulatorScreen.screen) {
+            val viewModel = WorkoutViewModel()
+            WorkoutSimulatorScreen(viewModel = viewModel, workouts = viewModel.workouts, onWorkoutCompleted = { navigationController.popBackStack() })
+        }
     }
 }

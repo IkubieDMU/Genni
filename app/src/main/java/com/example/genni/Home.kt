@@ -16,8 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,6 +70,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = emeraldGreen)
             )
         },
+        bottomBar = { ModernBottomAppBar() }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -81,14 +86,10 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
                 val context = LocalContext.current
                 var selectedWorkout by remember { mutableStateOf<String?>(null) }
 
-                // Welcome Text
                 Text("Welcome Back!", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = Color.White)
-
                 Text("Your AI-Powered Workout Partner", color = Color.White.copy(alpha = 0.8f), fontSize = 16.sp)
-
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // 2x2 Workout Grid
                 val workoutTitles = listOf("Muscle Groups", "Sets & Reps", "Equipment", "Duration")
 
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -100,17 +101,16 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
                             for (j in 0..1) {
                                 val index = i * 2 + j
                                 WorkoutBox(workoutTitles[index]) {
-                                    selectedWorkout = workoutTitles[index] // Set selected workout for popup
+                                    selectedWorkout = workoutTitles[index]
                                 }
                             }
                         }
                     }
                 }
 
-                // Show Popup when a workout is clicked
                 if (selectedWorkout != null) {
                     AlertDialog(
-                        onDismissRequest = { selectedWorkout = null }, // Close popup when dismissed
+                        onDismissRequest = { selectedWorkout = null },
                         confirmButton = {
                             TextButton(onClick = { selectedWorkout = null }) {
                                 Text("OK", color = Color.White)
@@ -119,12 +119,10 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
                         title = { Text("Workout Info", color = Color.White) },
                         text = { Text("You selected: $selectedWorkout", color = Color.White.copy(alpha = 0.8f)) }
                     )
-
                 }
 
                 Spacer(modifier = Modifier.height(50.dp))
 
-                // Animated Generate Workout Button
                 Box(
                     modifier = Modifier
                         .size(90.dp)
@@ -141,6 +139,42 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
         }
     }
 }
+
+@Composable
+fun ModernBottomAppBar() {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 32.dp, vertical = 16.dp)
+            .height(70.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.horizontalGradient(
+                    listOf(emeraldGreen.copy(alpha = 0.8f), deepPurple.copy(alpha = 0.8f))
+                )
+            )
+
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            IconButton(onClick = { /* Home Click */ }) {
+                Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
+            }
+            IconButton(onClick = { /* Search Click */ }) {
+                Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
+            }
+            IconButton(onClick = { /* Profile Click */ }) {
+                Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color.White)
+            }
+            IconButton(onClick = { /* Settings Click */ }) {
+                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
+            }
+        }
+    }
+}
+
 
 @Composable
 fun WorkoutBox(title: String, onClick: () -> Unit) {
