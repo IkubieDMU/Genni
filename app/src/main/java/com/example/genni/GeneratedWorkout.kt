@@ -50,6 +50,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.genni.models.Workout
 import com.example.genni.ui.theme.GenniTheme
 import com.example.genni.ui.theme.deepPurple
@@ -61,9 +63,10 @@ import com.example.genni.viewmodels.WorkoutViewModel
 import kotlin.random.Random
 
 @Composable
-fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel) {
+fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel, navController: NavController) {
     val workouts by remember { derivedStateOf { viewModel.workouts }}
     val context = LocalContext.current.applicationContext
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,18 +84,17 @@ fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        workouts.forEach{ workout ->
+        workouts.forEach { workout ->
             WorkoutCard(workout)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         Column(modifier = Modifier.size(100.dp).align(Alignment.CenterHorizontally)) {
-            PlayButton(context)
-        }
-
-
+            PlayButton(context = context, navController = navController, workouts = workouts)
         }
     }
+}
+
 
 @Composable
 fun WorkoutCard(workout: Workout) {
@@ -131,29 +133,27 @@ fun WorkoutCard(workout: Workout) {
 }
 
 @Composable
-fun PlayButton(context: Context) {
+fun PlayButton(context: Context, navController: NavController, workouts: List<Workout>) {
     IconButton(
         onClick = {
-            Toast.makeText(context, "Generating Workout!!", Toast.LENGTH_SHORT).show()
+            if (workouts.isNotEmpty()) {
+                navController.navigate(Screens.WorkoutSimulatorScreen.screen) //Redirect to the Workout Simulator Screen....
+            } else {
+                Toast.makeText(context, "No workouts to generate!", Toast.LENGTH_SHORT).show()
+            }
         },
-        modifier = Modifier
-            .size(60.dp)  // Circular button size
-            .shadow(8.dp, CircleShape)  // Adds a nice shadow effect
-            .background(deepPurple, CircleShape)  // Background color
+        modifier = Modifier.size(60.dp).shadow(8.dp, CircleShape).background(deepPurple, CircleShape)
     ) {
-        Icon(
-            imageVector = Icons.Default.PlayArrow,
-            contentDescription = "Start Workout",
-            tint = Color.White,
-            modifier = Modifier.size(36.dp)  // Adjust icon size
-        )
+        Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Start Workout", tint = Color.White, modifier = Modifier.size(36.dp))
     }
 }
+
 
 
 
 @Preview(showBackground = true)
 @Composable
 fun GeneratedWorkoutScreenPreview() {
-    GenniTheme { GeneratedWorkoutScreen(WorkoutViewModel()) }
+    val nc = rememberNavController()
+    GenniTheme { GeneratedWorkoutScreen(WorkoutViewModel(),nc) }
 }
