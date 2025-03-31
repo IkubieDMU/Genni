@@ -1,7 +1,7 @@
 package com.example.genni.states
 
 enum class WorkoutState {
-    Exerise,
+    Exercise,
     Rest,
     Completed
 }

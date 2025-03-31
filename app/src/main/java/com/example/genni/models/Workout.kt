@@ -6,5 +6,6 @@ data class Workout(
     val name: String,
     val sets: Int,
     val reps: Int,
-    val restTime: Int
+    val restTime: Int,
+    val imageResID: Int
 )

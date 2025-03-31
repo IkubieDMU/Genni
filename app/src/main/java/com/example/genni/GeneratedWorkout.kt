@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,7 +65,7 @@ import kotlin.random.Random
 
 @Composable
 fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel, navController: NavController) {
-    val workouts by remember { derivedStateOf { viewModel.workouts }}
+    val workouts by remember { derivedStateOf { viewModel.workouts }} // Uses the existing workouts
     val context = LocalContext.current.applicationContext
 
     Column(
@@ -96,8 +97,11 @@ fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel, navController: NavContro
 }
 
 
+
 @Composable
 fun WorkoutCard(workout: Workout) {
+    //val currentExerciseIndex by viewModel.currentExerciseIndex
+
     Card(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
         shape = RoundedCornerShape(20.dp),
@@ -106,15 +110,18 @@ fun WorkoutCard(workout: Workout) {
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier = Modifier.size(80.dp).background(emeraldGreen, shape = CircleShape),
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(Color.Transparent, shape = CircleShape)
+                    .border(width = 1.dp, color = deepPurple, shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                /*Image( //TODO: Do something with this later
-                    painter = painterResource(id = R.drawable.gym_logo),
+                Image(
+                    painter = painterResource(id = workout.imageResID),
                     contentDescription = "Workout Icon",
                     modifier = Modifier.size(50.dp),
                     contentScale = ContentScale.Crop
-                )*/
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -126,7 +133,7 @@ fun WorkoutCard(workout: Workout) {
                     color = deepPurple
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Sets: ${workout.sets} | Reps: ${workout.reps} | Rest: ${workout.restTime} min(s)", fontSize = 14.sp, color = Color.Gray)
+                Text("Sets: ${workout.sets} | Reps: ${workout.reps} | Rest: ${workout.restTime} min(s)", fontSize = 14.sp, color = deepPurple)
             }
         }
     }
@@ -137,7 +144,8 @@ fun PlayButton(context: Context, navController: NavController, workouts: List<Wo
     IconButton(
         onClick = {
             if (workouts.isNotEmpty()) {
-                navController.navigate(Screens.WorkoutSimulatorScreen.screen) //Redirect to the Workout Simulator Screen....
+                // Passing workouts via ViewModel, so no need to pass them explicitly here
+                navController.navigate(Screens.WorkoutSimulatorScreen.screen)
             } else {
                 Toast.makeText(context, "No workouts to generate!", Toast.LENGTH_SHORT).show()
             }
@@ -147,6 +155,7 @@ fun PlayButton(context: Context, navController: NavController, workouts: List<Wo
         Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Start Workout", tint = Color.White, modifier = Modifier.size(36.dp))
     }
 }
+
 
 
 
