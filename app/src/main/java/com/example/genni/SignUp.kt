@@ -26,7 +26,7 @@ import com.example.genni.ui.theme.*
 @Composable
 fun SignUpScreen(nc: NavController) {
 
-    var context = LocalContext.current.applicationContext
+    val context = LocalContext.current.applicationContext
 
     Box(
         modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))),

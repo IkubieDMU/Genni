@@ -1,6 +1,7 @@
 package com.example.genni
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -9,7 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.genni.ui.theme.GenniTheme
@@ -42,15 +45,21 @@ class MainActivity : ComponentActivity() {
 fun App() {
     // * App Navigation Logic *
     val navigationController = rememberNavController()
+    val workoutViewModel = remember { WorkoutViewModel() } // Creating a single instance of the WorkoutViewModel
+
     NavHost(navController = navigationController, startDestination = Screens.LoginScreen.screen) {
         composable(Screens.LoginScreen.screen) { LoginScreen(navigationController,AuthViewModel()) }
         composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel()) }
         composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController)}
         composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel())}
-        composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(WorkoutViewModel(),navigationController) }
+        composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(workoutViewModel,navigationController) }
         composable(Screens.WorkoutSimulatorScreen.screen) {
-            val viewModel = WorkoutViewModel()
-            WorkoutSimulatorScreen(viewModel = viewModel, workouts = viewModel.workouts, onWorkoutCompleted = { navigationController.popBackStack() })
+            WorkoutSimulatorScreen(
+                viewModel = workoutViewModel,
+                onWorkoutCompleted = {
+                    navigationController.popBackStack() // Go back to previous page....
+                }
+            )
         }
     }
 }

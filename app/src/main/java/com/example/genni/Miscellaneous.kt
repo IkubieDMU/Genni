@@ -1,20 +1,34 @@
+@file:Suppress("SpellCheckingInspection", "SpellCheckingInspection", "SpellCheckingInspection",
+    "SpellCheckingInspection", "SpellCheckingInspection", "SpellCheckingInspection"
+)
+
 package com.example.genni
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.lint.kotlin.metadata.Visibility
 import com.example.genni.ui.theme.mintGreen
 import com.example.genni.ui.theme.white
 
@@ -49,7 +63,15 @@ fun UsernameTF(value: String, updatedValue: (String) -> Unit, labelText: String,
 }
 
 @Composable
-fun PasswordTF(value: String, updatedValue: (String) -> Unit, labelText: String, leading_Icon: ImageVector, iconDesc: String) {
+fun PasswordTF(
+    value: String,
+    updatedValue: (String) -> Unit,
+    labelText: String,
+    leading_Icon: ImageVector,
+    iconDesc: String
+) {
+    var passwordVisible by remember { mutableStateOf(false) } // Track visibility state
+
     OutlinedTextField(
         value = value,
         onValueChange = { updatedValue(it) },
@@ -71,10 +93,22 @@ fun PasswordTF(value: String, updatedValue: (String) -> Unit, labelText: String,
         leadingIcon = {
             Icon(imageVector = leading_Icon, contentDescription = iconDesc)
         },
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        visualTransformation = PasswordVisualTransformation() // For Password Hashing
+        trailingIcon = {
+            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                Icon(
+                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    contentDescription = if (passwordVisible) "Hide Password" else "Show Password",
+                    tint = mintGreen
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
     )
 }
+
 // When text is clicked, do something
 @Composable
 fun ClickableText(text: String, color: Color, fontsize: TextUnit, onClick: () -> Unit) {

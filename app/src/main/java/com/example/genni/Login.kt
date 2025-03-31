@@ -47,6 +47,7 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.genni.ui.theme.GenniTheme
+import com.example.genni.ui.theme.deepPurple
 import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.mintGreen
 import com.example.genni.ui.theme.royalPurple
@@ -60,7 +61,7 @@ import com.example.genni.viewmodels.ResetState
 @Composable
 fun LoginScreen(nc: NavController, viewModel: AuthViewModel) {
 
-    Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, royalPurple, softLavender))), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple))), contentAlignment = Alignment.Center) {
         Column(modifier = Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
             Spacer(modifier = Modifier.height(16.dp))
