@@ -39,21 +39,9 @@ class WorkoutViewModel : ViewModel() {
     )
 
     private val workoutImages = listOf(
-        R.drawable.pushups,
-        R.drawable.benchpress,
-        R.drawable.ibpress,
-        R.drawable.chestfly,
-        R.drawable.dips,
-        R.drawable.pullups,
-        R.drawable.deadlift,
-        R.drawable.bbshoulderpress,
-        R.drawable.pulldowns,
-        R.drawable.cablerows,
-        R.drawable.squats,
-        R.drawable.lunges,
-        R.drawable.legpress,
-        R.drawable.calfraises,
-        R.drawable.hamstringcurls,
+        R.drawable.pushups, R.drawable.benchpress, R.drawable.ibpress, R.drawable.chestfly, R.drawable.dips,
+        R.drawable.pullups, R.drawable.deadlift, R.drawable.bbshoulderpress, R.drawable.pulldowns, R.drawable.cablerows,
+        R.drawable.squats, R.drawable.lunges, R.drawable.legpress, R.drawable.calfraises, R.drawable.hamstringcurls,
     )
 
     init {

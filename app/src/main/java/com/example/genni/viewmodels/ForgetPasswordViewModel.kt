@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.genni.states.ResetState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,12 +59,4 @@ class ForgetPasswordViewModel : ViewModel() {
     }
 }
 
-/**
- * Represents different states of the password reset process.
- */
-sealed class ResetState {
-    object Idle : ResetState() // Initial state, no action taken yet
-    object Loading : ResetState() // Indicates that the password reset is in progress
-    data class Success(val message: String) : ResetState() // Success state with a confirmation message
-    data class Error(val message: String) : ResetState() // Error state with an error message
-}
+

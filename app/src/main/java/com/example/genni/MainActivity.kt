@@ -20,7 +20,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.genni.viewmodels.AuthViewModel
+import com.example.genni.viewmodels.BEViewModel
 import com.example.genni.viewmodels.ForgetPasswordViewModel
+import com.example.genni.viewmodels.HCViewModel
 import com.example.genni.viewmodels.HomeViewModel
 import com.example.genni.viewmodels.WorkoutViewModel
 
@@ -61,5 +63,10 @@ fun App() {
                 }
             )
         }
+        composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(HCViewModel())}
+        composable(Screens.BreathingExercisesScreen.screen) { BreathingExercisesScreen(navigationController, BEViewModel())}
+        composable(Screens.BreathingExercisesSimulatorScreen.screen) { BESimulatorScreen(BEViewModel()) { } }
+        composable(Screens.SettingsScreen.screen) { SettingsScreen()}
+        composable(Screens.AboutScreen.screen) { AboutScreen()}
     }
 }

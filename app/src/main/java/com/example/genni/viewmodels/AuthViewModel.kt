@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.genni.states.AuthState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,12 +75,4 @@ class AuthViewModel : ViewModel() {
     }
 }
 
-/**
- * Represents different states of the authentication process.
- */
-sealed class AuthState {
-    object Idle : AuthState() // Initial state, no action taken yet
-    object Loading : AuthState() // Indicates that authentication is in progress
-    data class Success(val message: String) : AuthState() // Success state with a confirmation message
-    data class Error(val message: String) : AuthState() // Error state with an error message
-}
+
