@@ -7,5 +7,6 @@ data class Workout(
     val sets: Int,
     val reps: Int,
     val restTime: Int,
-    val imageResID: Int
+    val imageResID: Int,
+    val progress: Float = 0f // Default value of 0
 )

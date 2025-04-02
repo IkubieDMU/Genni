@@ -7,6 +7,7 @@ package com.example.genni
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -28,7 +29,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.lint.kotlin.metadata.Visibility
 import com.example.genni.ui.theme.mintGreen
 import com.example.genni.ui.theme.white
 
@@ -36,7 +36,7 @@ import com.example.genni.ui.theme.white
 
 // Username & Password Composables
 @Composable
-fun UsernameTF(value: String, updatedValue: (String) -> Unit, labelText: String, leading_Icon: ImageVector, iconDesc: String) {
+fun MyCustomTF(value: String, updatedValue: (String) -> Unit, labelText: String, leading_Icon: ImageVector, iconDesc: String) {
     OutlinedTextField(
         value = value,
         onValueChange = { updatedValue(it) },
@@ -58,12 +58,12 @@ fun UsernameTF(value: String, updatedValue: (String) -> Unit, labelText: String,
         leadingIcon = {
             Icon(imageVector = leading_Icon, contentDescription = iconDesc)
         },
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        modifier = Modifier.width(335.dp).padding(bottom = 8.dp)
     )
 }
 
 @Composable
-fun PasswordTF(
+fun MyCustomPasswordTF(
     value: String,
     updatedValue: (String) -> Unit,
     labelText: String,

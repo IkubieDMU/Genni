@@ -32,13 +32,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.genni.states.ResetState
 import com.example.genni.ui.theme.GenniTheme
 import com.example.genni.ui.theme.deepPurple
 import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.ForgetPasswordViewModel
-import com.example.genni.viewmodels.ResetState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +58,7 @@ fun ForgotPasswordScreen(nc: NavController, viewModel: ForgetPasswordViewModel) 
             Text("Forgot Password?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
             Spacer(modifier = Modifier.height(16.dp))
 
-            UsernameTF(viewModel.email, { viewModel.onEmailChange(it) }, "Email", Icons.Default.Email, "Email Icon")
+            MyCustomTF(viewModel.email, { viewModel.onEmailChange(it) }, "Email", Icons.Default.Email, "Email Icon")
             Spacer(modifier = Modifier.height(20.dp))
 
             // Reset Password Button

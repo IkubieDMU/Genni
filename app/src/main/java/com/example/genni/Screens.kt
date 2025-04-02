@@ -7,4 +7,9 @@ sealed class Screens(val screen: String) {
     data object ForgetPasswordScreen:Screens("forgetpasswordscreen")
     data object GeneratedWorkoutScreen:Screens("generatedworkoutscreen")
     data object WorkoutSimulatorScreen:Screens("workoutsimulatorscreen")
+    data object HealthCalculationsScreen:Screens("healthcalculationsscreen")
+    data object BreathingExercisesScreen:Screens("breathingexercisesscreen")
+    data object BreathingExercisesSimulatorScreen:Screens("besimulatorscreen")
+    data object SettingsScreen:Screens("settingsscreen")
+    data object AboutScreen:Screens("aboutscreen")
 }

@@ -43,11 +43,11 @@ fun SignUpScreen(nc: NavController) {
             var email by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
 
-            UsernameTF(name, { name = it }, "Full Name", Icons.Default.Person, "Name Icon")
+            MyCustomTF(name, { name = it }, "Full Name", Icons.Default.Person, "Name Icon")
             Spacer(modifier = Modifier.height(10.dp))
-            UsernameTF(email, { email = it }, "Email", Icons.Default.Email, "Email Icon")
+            MyCustomTF(email, { email = it }, "Email", Icons.Default.Email, "Email Icon")
             Spacer(modifier = Modifier.height(10.dp))
-            PasswordTF(password, { password = it }, "Password", Icons.Default.Lock, "Password Icon")
+            MyCustomPasswordTF(password, { password = it }, "Password", Icons.Default.Lock, "Password Icon")
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
