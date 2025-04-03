@@ -12,67 +12,33 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
-
-    // Holds the user's username input
     var username by mutableStateOf("")
-    private set // Ensures only ViewModel can modify it
-
-    // Holds the user's password input
     var password by mutableStateOf("")
-    private set // Ensures only ViewModel can modify it
-
-            // Holds the UI state for authentication process
-            private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
-
-    // Publicly exposed immutable StateFlow so UI can observe changes
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
 
-    // METHODS
-
-    /**
-     * Updates the username state when the user types in the username field.
-     * @param newUsername The updated username entered by the user.
-     */
     fun onUsernameChange(newUsername: String) {
-        username = newUsername  // Update username state
+        username = newUsername
     }
 
-    /**
-     * Updates the password state when the user types in the password field.
-     * @param newPassword The updated password entered by the user.
-     */
     fun onPasswordChange(newPassword: String) {
-        password = newPassword  // Update password state
+        password = newPassword
     }
 
-    /**
-     * Handles user authentication.
-     * It checks if fields are empty, then simulates a login process.
-     */
-    fun authenticateUser(onLoginSuccess: () -> Unit) {
-        // Check if fields are empty, show an error state if true
+    fun authenticateUser(userViewModel: UserViewModel, onLoginSuccess: () -> Unit) {
         if (username.isBlank() || password.isBlank()) {
             _authState.value = AuthState.Error("Fields cannot be empty")
             return
         }
 
-        // Set UI state to Loading to indicate ongoing login process
-        _authState.value = AuthState.Loading
-
-        // Simulating network call using coroutine
         viewModelScope.launch {
-            delay(5000) // Simulating a delay of 5 seconds for authentication
-
-            // Check if username and password match expected credentials
-            if (username == "admin" && password == "admin123") {
+            val user = userViewModel.authenticateUser(username, password)
+            if (user != null) {
                 _authState.value = AuthState.Success("Login successful!")
-                delay(1000) //Wait 1 Seconds
-                onLoginSuccess() // Navigate to next screen
+                onLoginSuccess()
             } else {
                 _authState.value = AuthState.Error("Invalid Username or Password")
             }
         }
     }
 }
-
-

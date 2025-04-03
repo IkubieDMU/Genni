@@ -24,6 +24,7 @@ import com.example.genni.viewmodels.BEViewModel
 import com.example.genni.viewmodels.ForgetPasswordViewModel
 import com.example.genni.viewmodels.HCViewModel
 import com.example.genni.viewmodels.HomeViewModel
+import com.example.genni.viewmodels.UserViewModel
 import com.example.genni.viewmodels.WorkoutViewModel
 
 class MainActivity : ComponentActivity() {
@@ -47,12 +48,14 @@ class MainActivity : ComponentActivity() {
 fun App() {
     // * App Navigation Logic *
     val navigationController = rememberNavController()
+    val userViewModel = remember { UserViewModel() }
+    val authViewModel = remember { AuthViewModel() }
     val workoutViewModel = remember { WorkoutViewModel() } // Creating a single instance of the WorkoutViewModel
 
     NavHost(navController = navigationController, startDestination = Screens.LoginScreen.screen) {
-        composable(Screens.LoginScreen.screen) { LoginScreen(navigationController,AuthViewModel()) }
+        composable(Screens.LoginScreen.screen) { LoginScreen(navigationController,authViewModel,userViewModel) }
         composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel()) }
-        composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController)}
+        composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController, userViewModel)}
         composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel())}
         composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(workoutViewModel,navigationController) }
         composable(Screens.WorkoutSimulatorScreen.screen) {

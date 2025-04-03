@@ -40,52 +40,69 @@ import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.AuthViewModel
+import com.example.genni.viewmodels.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(nc: NavController, viewModel: AuthViewModel) {
+fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel) {
+    val authState by authViewModel.authState.collectAsState()
+    val context = LocalContext.current
 
-    Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple))), contentAlignment = Alignment.Center) {
-        Column(modifier = Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-
+    Box(
+        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple))),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Spacer(modifier = Modifier.height(16.dp))
             Text("Welcome Back to Genni", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Mutable Variables
-            val authState by viewModel.authState.collectAsState()
-
-            val context = LocalContext.current // For Toasts
-
             // Username TextField
-            MyCustomTF(viewModel.username, {viewModel.onUsernameChange(it)}, "Username", Icons.Default.Person, "User Icon")
+            MyCustomTF(
+                value = authViewModel.username,
+                updatedValue = { authViewModel.onUsernameChange(it) },
+                labelText = "Username",
+                leading_Icon = Icons.Default.Person,
+                iconDesc = "User Icon"
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            //Password TextField
-            MyCustomPasswordTF(viewModel.password, {viewModel.onPasswordChange(it)}, "Password", Icons.Default.Lock, "Password Icon")
+            // Password TextField
+            MyCustomPasswordTF(
+                value = authViewModel.password,
+                updatedValue = { authViewModel.onPasswordChange(it) },
+                labelText = "Password",
+                leading_Icon = Icons.Default.Lock,
+                iconDesc = "Password Icon"
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            ClickableText("Forget Password?", softLavender,14.sp) {
-                nc.navigate(Screens.ForgetPasswordScreen.screen) // Redirect to the "ForgetPassword" Screen
-            }
+            ClickableText(text = "Forget Password?", color = softLavender, fontsize = 14.sp,
+                onClick = { nc.navigate(Screens.ForgetPasswordScreen.screen) }
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            //                  * Login Button *
+            // Login Button
             Button(
-                //When Clicked, Authenticate User
-                onClick = { viewModel.authenticateUser() { nc.navigate(Screens.HomeScreen.screen) {popUpTo(0)} } },
-
+                onClick = {
+                    authViewModel.authenticateUser(userViewModel) {
+                        nc.navigate(Screens.HomeScreen.screen) { popUpTo(0) }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = emeraldGreen),
                 shape = RoundedCornerShape(30.dp),
                 modifier = Modifier.fillMaxWidth(),
                 enabled = authState !is AuthState.Loading
             ) {
                 if (authState is AuthState.Loading) {
-                    CircularProgressIndicator(color = emeraldGreen, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(color = white, modifier = Modifier.size(20.dp))
                 } else {
                     Text("Login", color = white, fontSize = 18.sp)
                 }
@@ -93,9 +110,10 @@ fun LoginScreen(nc: NavController, viewModel: AuthViewModel) {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            ClickableText("Don't have an account? Sign Up", softLavender,14.sp) {
-                nc.navigate(Screens.SignUpScreen.screen) // Redirect to the Sign up Screen
-            }
+            ClickableText(
+                "Don't have an account? Sign Up", color = softLavender, fontsize = 14.sp,
+                onClick = { nc.navigate(Screens.SignUpScreen.screen) }
+            )
 
             LaunchedEffect(authState) {
                 when (authState) {
@@ -112,9 +130,11 @@ fun LoginScreen(nc: NavController, viewModel: AuthViewModel) {
     }
 }
 
+
+
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
     val nc = rememberNavController()
-    GenniTheme { LoginScreen(nc, AuthViewModel()) }
+    GenniTheme { LoginScreen(nc, AuthViewModel(),UserViewModel()) }
 }
