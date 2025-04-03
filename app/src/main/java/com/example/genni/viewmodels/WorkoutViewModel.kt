@@ -15,19 +15,15 @@ class WorkoutViewModel : ViewModel() {
 
     // Mutable list that holds the generated workouts
     private val _workouts = mutableStateListOf<Workout>()
-
     // Publicly accessible list of workouts (read-only)
     val workouts: List<Workout> get() = _workouts
 
     // Holds the index of the current exercise being performed (Using MutableState for Compose recomposition)
     var currentExerciseIndex = mutableStateOf(0)
-
     // Holds the current set number of the ongoing exercise (Using MutableState for Compose recomposition)
     var currentSet = mutableStateOf(1)
-
     // Tracks the current state of the workout - Exercise, Rest, or Completed (Using MutableState for Compose recomposition)
     var currentState = mutableStateOf(WorkoutState.Exercise)
-
     // Time remaining for an exercise or rest period (in seconds) (Using MutableState for Compose recomposition)
     var timeLeft = mutableStateOf(0)
 
