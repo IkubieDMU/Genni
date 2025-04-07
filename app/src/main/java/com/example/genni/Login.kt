@@ -130,8 +130,6 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
     }
 }
 
-
-
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {

@@ -66,14 +66,16 @@ import com.example.genni.viewmodels.HomeViewModel
 import androidx.compose.runtime.*
 import androidx.compose.ui.res.painterResource
 import com.example.genni.ui.theme.white
+import com.example.genni.viewmodels.AuthViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
+fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthViewModel) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val currentUser by authViewModel.currentUser.collectAsState() // Current User's data
 
     // List of drawer item names and their respective routes
     val drawerItems = listOf(
@@ -86,9 +88,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = {
-            DrawerContent(drawerItems, nc, drawerState, scope)
-        }
+        drawerContent = { DrawerContent(drawerItems, nc, drawerState, scope,authViewModel) }
     ) {
         Scaffold(
             topBar = {
@@ -103,7 +103,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = emeraldGreen)
                 )
             },
-            /*bottomBar = { ModernBottomAppBar() }*/
+            /*bottomBar = { ModernBottomAppBar() } -> Bottom App Bar Code*/
         ) { paddingValues ->
             Box(
                 modifier = Modifier
@@ -120,7 +120,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
                     var selectedWorkout by remember { mutableStateOf<String?>(null) }
 
                     Image(painterResource(R.drawable.genniappiconnb), contentDescription = "Genni's Logo", modifier = Modifier.size(70.dp))
-                    Text("Welcome Back!", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Welcome Back ${currentUser?.firstName ?: "User"}!", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Text("Your AI-Powered Workout Partner", color = Color.White.copy(alpha = 0.8f), fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(40.dp))
 
@@ -175,12 +175,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel) {
 }
 
 @Composable
-fun DrawerContent(
-    drawerItems: List<Pair<String, String>>,
-    nc: NavController,
-    drawerState: DrawerState,
-    scope: CoroutineScope
-) {
+fun DrawerContent(drawerItems: List<Pair<String, String>>, nc: NavController, drawerState: DrawerState, scope: CoroutineScope, authViewModel: AuthViewModel) {
     // Smooth gradient background with a floating effect
     Box(
         modifier = Modifier.fillMaxHeight().width(250.dp)
@@ -190,6 +185,7 @@ fun DrawerContent(
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
+            val currentUser by authViewModel.currentUser.collectAsState()
             // Header Section with Profile Picture and Welcome Message
             Box(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp)
@@ -202,7 +198,7 @@ fun DrawerContent(
                         Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color.White, modifier = Modifier.size(50.dp).align(Alignment.Center))
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Welcome, User!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = "Welcome ${currentUser?.firstName ?: "User"}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             }
 
@@ -279,7 +275,6 @@ fun ModernBottomAppBar() {
     }
 }
 
-
 @Composable
 fun WorkoutBox(title: String, onClick: () -> Unit) {
     Box(
@@ -295,13 +290,9 @@ fun WorkoutBox(title: String, onClick: () -> Unit) {
     }
 }
 
-
-
-
-
 @Preview
 @Composable
 fun HomeScreenPreview() {
     val nc = rememberNavController()
-    GenniTheme { HomeScreen(nc, HomeViewModel()) }
+    GenniTheme { HomeScreen(nc, HomeViewModel(), AuthViewModel()) }
 }

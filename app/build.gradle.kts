@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    // FIrebase Plugin
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -55,6 +58,14 @@ dependencies {
     implementation("androidx.compose.material:material:1.4.0")
     implementation ("androidx.compose.material:material-icons-core:1.4.0")
     implementation ("androidx.compose.material:material-icons-extended:1.4.0")
+
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.12.0")) // FireBase BOM
+    implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.firebase.firestore.ktx) // FireBase Analytics
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
