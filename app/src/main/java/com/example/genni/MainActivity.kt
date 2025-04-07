@@ -54,7 +54,7 @@ fun App() {
 
     NavHost(navController = navigationController, startDestination = Screens.LoginScreen.screen) {
         composable(Screens.LoginScreen.screen) { LoginScreen(navigationController,authViewModel,userViewModel) }
-        composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel()) }
+        composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel(), authViewModel) }
         composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController, userViewModel)}
         composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel())}
         composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(workoutViewModel,navigationController) }

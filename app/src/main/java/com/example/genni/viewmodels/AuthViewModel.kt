@@ -1,21 +1,25 @@
 package com.example.genni.viewmodels
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.example.genni.models.User
 import com.example.genni.states.AuthState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
     var username by mutableStateOf("")
     var password by mutableStateOf("")
+
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState
+
+    // Store the logged-in user
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser
 
     fun onUsernameChange(newUsername: String) {
         username = newUsername
@@ -30,10 +34,9 @@ class AuthViewModel : ViewModel() {
             _authState.value = AuthState.Error("Fields cannot be empty")
             return
         }
-
-        viewModelScope.launch {
-            val user = userViewModel.authenticateUser(username, password)
+        userViewModel.authenticateUser(username, password) { user ->
             if (user != null) {
+                _currentUser.value = user // Save logged-in user
                 _authState.value = AuthState.Success("Login successful!")
                 onLoginSuccess()
             } else {
@@ -42,3 +45,4 @@ class AuthViewModel : ViewModel() {
         }
     }
 }
+
