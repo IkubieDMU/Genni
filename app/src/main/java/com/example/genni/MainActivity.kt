@@ -19,6 +19,11 @@ import com.example.genni.ui.theme.GenniTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.genni.adminScreens.AdminHomeScreen
+import com.example.genni.adminScreens.AdminLoginScreen
+import com.example.genni.adminScreens.AdminSignUpScreen
+import com.example.genni.viewmodels.AdminViewModel
+import com.example.genni.viewmodels.AppSettingsViewModel
 import com.example.genni.viewmodels.AuthViewModel
 import com.example.genni.viewmodels.BEViewModel
 import com.example.genni.viewmodels.ForgetPasswordViewModel
@@ -46,30 +51,42 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun App() {
-    // * App Navigation Logic *
     val navigationController = rememberNavController()
+
     val userViewModel = remember { UserViewModel() }
     val authViewModel = remember { AuthViewModel() }
-    val workoutViewModel = remember { WorkoutViewModel() } // Creating a single instance of the WorkoutViewModel
+    val workoutViewModel = remember { WorkoutViewModel() }
+    val appSettingsViewModel = remember { AppSettingsViewModel() }
+    val adminViewModel = remember { AdminViewModel() }
 
-    NavHost(navController = navigationController, startDestination = Screens.LoginScreen.screen) {
-        composable(Screens.LoginScreen.screen) { LoginScreen(navigationController,authViewModel,userViewModel) }
-        composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel(), authViewModel) }
-        composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController, userViewModel)}
-        composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel())}
-        composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(workoutViewModel,navigationController) }
-        composable(Screens.WorkoutSimulatorScreen.screen) {
-            WorkoutSimulatorScreen(
-                viewModel = workoutViewModel,
-                onWorkoutCompleted = {
-                    navigationController.popBackStack() // Go back to previous page....
-                }
-            )
+    val isDarkTheme = appSettingsViewModel.isDarkTheme
+
+    GenniTheme(darkTheme = isDarkTheme) {
+        NavHost(navController = navigationController, startDestination = Screens.LoginScreen.screen) {
+            composable(Screens.LoginScreen.screen) { LoginScreen(navigationController, authViewModel, userViewModel) }
+            composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, HomeViewModel(), authViewModel) }
+            composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController, userViewModel) }
+            composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel()) }
+            composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(workoutViewModel, navigationController) }
+            composable(Screens.WorkoutSimulatorScreen.screen) {
+                WorkoutSimulatorScreen(
+                    viewModel = workoutViewModel,
+                    onWorkoutCompleted = {
+                        navigationController.popBackStack()
+                    }
+                )
+            }
+            composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(HCViewModel()) }
+            composable(Screens.BreathingExercisesScreen.screen) { BreathingExercisesScreen(navigationController, BEViewModel()) }
+            composable(Screens.BreathingExercisesSimulatorScreen.screen) { BESimulatorScreen(BEViewModel()) { } }
+            composable(Screens.SettingsScreen.screen) { SettingsScreen(navigationController, authViewModel, appSettingsViewModel) }
+            composable(Screens.AboutScreen.screen) { AboutScreen() }
+            composable(Screens.ProfileScreen.screen) { ProfileScreen(authViewModel) }
+
+            // Admin's Composables
+            composable(Screens.AdminHomeScreen.screen) { AdminHomeScreen() }
+            composable(Screens.AdminLoginScreen.screen) { AdminLoginScreen(navigationController, adminViewModel, authViewModel) }
+            composable(Screens.AdminSignUpScreen.screen) { AdminSignUpScreen(navigationController,adminViewModel) }
         }
-        composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(HCViewModel())}
-        composable(Screens.BreathingExercisesScreen.screen) { BreathingExercisesScreen(navigationController, BEViewModel())}
-        composable(Screens.BreathingExercisesSimulatorScreen.screen) { BESimulatorScreen(BEViewModel()) { } }
-        composable(Screens.SettingsScreen.screen) { SettingsScreen()}
-        composable(Screens.AboutScreen.screen) { AboutScreen()}
     }
 }
