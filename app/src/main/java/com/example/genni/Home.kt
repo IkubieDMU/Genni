@@ -82,6 +82,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthV
         "Home" to Screens.HomeScreen.screen,
         "Health Calculations" to Screens.HealthCalculationsScreen.screen,
         "Breathing Exercises" to Screens.BreathingExercisesScreen.screen,
+        "Profile" to Screens.ProfileScreen.screen,
         "Settings" to Screens.SettingsScreen.screen,
         "About" to Screens.AboutScreen.screen
     )
@@ -227,6 +228,7 @@ fun DrawerContent(drawerItems: List<Pair<String, String>>, nc: NavController, dr
                                 "Home" -> Icons.Default.Home
                                 "Health Calculations" -> Icons.Default.FitnessCenter
                                 "Breathing Exercises" -> Icons.Default.Air
+                                "Profile" -> Icons.Default.Person
                                 "Settings" -> Icons.Default.Settings
                                 "About" -> Icons.Default.Info
                                 else -> Icons.Default.Menu

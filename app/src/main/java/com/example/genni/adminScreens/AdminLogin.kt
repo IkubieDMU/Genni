@@ -1,4 +1,4 @@
-package com.example.genni
+package com.example.genni.adminScreens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,18 +32,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.genni.ClickableText
+import com.example.genni.MyCustomPasswordTF
+import com.example.genni.MyCustomTF
+import com.example.genni.Screens
 import com.example.genni.states.AuthState
 import com.example.genni.ui.theme.GenniTheme
 import com.example.genni.ui.theme.deepPurple
 import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
+import com.example.genni.viewmodels.AdminViewModel
 import com.example.genni.viewmodels.AuthViewModel
-import com.example.genni.viewmodels.UserViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel) {
+fun AdminLoginScreen(nc: NavController,adminViewModel: AdminViewModel,authViewModel: AuthViewModel) {
     val authState by authViewModel.authState.collectAsState()
     val context = LocalContext.current
 
@@ -57,14 +59,14 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Welcome Back to Genni", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
+            Text("Welcome Admin", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Username TextField
             MyCustomTF(
-                value = authViewModel.username,
-                updatedValue = { authViewModel.onUsernameChange(it) },
+                value = adminViewModel.username,
+                updatedValue = { adminViewModel.onAdminUsernameChange(it) },
                 labelText = "Username",
                 leading_Icon = Icons.Default.Person,
                 iconDesc = "User Icon"
@@ -74,8 +76,8 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
 
             // Password TextField
             MyCustomPasswordTF(
-                value = authViewModel.password,
-                updatedValue = { authViewModel.onPasswordChange(it) },
+                value = adminViewModel.password,
+                updatedValue = { adminViewModel.onAdminPasswordChange(it) },
                 labelText = "Password",
                 leading_Icon = Icons.Default.Lock,
                 iconDesc = "Password Icon"
@@ -83,17 +85,13 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            ClickableText(text = "Forget Password?", color = softLavender, fontsize = 14.sp,
-                onClick = { nc.navigate(Screens.ForgetPasswordScreen.screen) }
-            )
-
             Spacer(modifier = Modifier.height(20.dp))
 
             // Login Button
             Button(
                 onClick = {
-                    authViewModel.authenticateUser(userViewModel) {
-                        nc.navigate(Screens.HomeScreen.screen) { popUpTo(0) }
+                    adminViewModel.authenticateAdmin(adminViewModel.username, adminViewModel.password) {
+                        nc.navigate(Screens.AdminHomeScreen.screen) { popUpTo(0) } // Redirect to the Admin's Home Screen
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = emeraldGreen),
@@ -110,14 +108,8 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            ClickableText(
-                "Don't have an account? Sign Up", color = softLavender, fontsize = 14.sp,
-                onClick = { nc.navigate(Screens.SignUpScreen.screen) }
-            )
-
-            ClickableText(
-                "Are you an Admin? Login Here", color = softLavender, fontsize = 14.sp,
-                onClick = { nc.navigate(Screens.AdminLoginScreen.screen) }
+            ClickableText(text = "Sign Up", color = softLavender, fontsize = 14.sp,
+                onClick = { nc.navigate(Screens.AdminSignUpScreen.screen) }
             )
 
             LaunchedEffect(authState) {
@@ -137,7 +129,7 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
 
 @Preview(showBackground = true)
 @Composable
-fun LoginScreenPreview() {
+fun AdminLoginPreview() {
     val nc = rememberNavController()
-    GenniTheme { LoginScreen(nc, AuthViewModel(),UserViewModel()) }
+    GenniTheme { AdminLoginScreen(nc, AdminViewModel(), AuthViewModel()) }
 }

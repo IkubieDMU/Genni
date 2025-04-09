@@ -12,4 +12,8 @@ sealed class Screens(val screen: String) {
     data object BreathingExercisesSimulatorScreen:Screens("besimulatorscreen")
     data object SettingsScreen:Screens("settingsscreen")
     data object AboutScreen:Screens("aboutscreen")
+    data object ProfileScreen:Screens("profilescreen")
+    data object AdminHomeScreen:Screens("adminhomescreen")
+    data object AdminLoginScreen:Screens("adminloginscreen")
+    data object AdminSignUpScreen:Screens("adminsignupscreen")
 }

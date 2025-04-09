@@ -1,5 +1,6 @@
 package com.example.genni.viewmodels
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,5 +45,12 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-}
 
+    fun logout(onLogout: () -> Unit) {
+        _currentUser.value = null
+        username = ""
+        password = ""
+        _authState.value = AuthState.Idle
+        onLogout()
+    }
+}
