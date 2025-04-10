@@ -56,5 +56,4 @@ class UserViewModel : ViewModel() {
             }
             .addOnFailureListener { callBack(null) }
     }
-
 }
