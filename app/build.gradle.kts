@@ -61,13 +61,15 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.4.0")
 
+    // FireBase Dependencies
     implementation(platform("com.google.firebase:firebase-bom:33.12.0")) // FireBase BOM
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.firestore.ktx) // FireBase Analytics
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
-
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("com.google.firebase:firebase-storage-ktx") // FireBase Storage Dependency
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

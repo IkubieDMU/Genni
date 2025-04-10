@@ -1,5 +1,7 @@
 package com.example.genni
 
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -57,15 +59,28 @@ fun ProfileScreen(authViewModel: AuthViewModel) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top) {
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Profile Picture Placeholder
-                AsyncImage(
-                    model = ImageRequest.Builder(context).data(user.profilePic).crossfade(true).build(),
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)).border(2.dp, Color.White, CircleShape),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(R.drawable.userplaceholder),
-                    error = painterResource(R.drawable.userplaceholder)
-                )
+                // Try parsing the profile picture URI and loading it
+                val profilePicUri = user.profilePic?.let { Uri.parse(it) }
+
+                // Load the image from URI using AsyncImage
+                profilePicUri?.let {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context).data(it).crossfade(true).build(),
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)).border(2.dp, Color.White, CircleShape),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.userplaceholder), // Placeholder image
+                        error = painterResource(R.drawable.userplaceholder)
+                    )
+                } ?: run {
+                    // If no profile pic, show a placeholder image
+                    Image(
+                        painter = painterResource(R.drawable.userplaceholder),
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)).border(2.dp, Color.White, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -80,11 +95,7 @@ fun ProfileScreen(authViewModel: AuthViewModel) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    thickness = 1.dp,
-                    color = white.copy(alpha = 0.3f)
-                )
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 1.dp, color = white.copy(alpha = 0.3f))
 
                 InfoRow("Age", "${user.age}")
                 InfoRow("Gender", user.gender)
@@ -92,7 +103,6 @@ fun ProfileScreen(authViewModel: AuthViewModel) {
                 InfoRow("Weight", "${user.weight} kg")
                 InfoRow("Years of Training", "${user.yearsOfTraining}")
                 InfoRow("Goals", user.goals.joinToString(", "))
-                InfoRow("Food Recommendations", user.foodRecommendations.joinToString(", "))
 
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -104,17 +114,21 @@ fun ProfileScreen(authViewModel: AuthViewModel) {
     }
 }
 
+
 @Composable
 fun InfoRow(label: String, value: String) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 6.dp)
-        .background(Color.White.copy(alpha = 0.05f), shape = RoundedCornerShape(12.dp))
-        .padding(12.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .background(Color.White.copy(alpha = 0.05f), shape = RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
         Text(text = label, color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
         Text(text = value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

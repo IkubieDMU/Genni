@@ -1,5 +1,6 @@
 package com.example.genni
 
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,6 +40,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.genni.models.User
 import com.example.genni.ui.theme.*
 import com.example.genni.viewmodels.UserViewModel
+import com.google.firebase.storage.FirebaseStorage
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,23 +61,30 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
     var height by remember { mutableStateOf("") }
     var profilePicUri by remember { mutableStateOf<Uri?>(null) }
 
-    val context = LocalContext.current.applicationContext // For Toasts
-    val scrollState = rememberScrollState() //Scroll functionality
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        profilePicUri = uri
+        uri?.let {
+            profilePicUri = it
+            try {
+                // Persist URI access
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: SecurityException) {
+                e.printStackTrace()
+            }
+        }
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple)))
-            .verticalScroll(scrollState)
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple))).verticalScroll(scrollState).padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Title
         Text("Create a new Genni Account", fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = white)
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -88,7 +97,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         MyCustomTF(age, { age = it }, "Age", Icons.Default.DateRange, "Age Icon")
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Gender DropDownList (M/F)
+        // Gender Dropdown
         var genderExpanded by remember { mutableStateOf(false) }
         val genderOptions = listOf("M", "F")
 
@@ -104,7 +113,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
                 label = { Text("Gender") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderExpanded) },
                 colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent, // Transparent Background
+                    containerColor = Color.Transparent,
                     focusedIndicatorColor = mintGreen,
                     unfocusedIndicatorColor = mintGreen,
                     focusedLabelColor = mintGreen,
@@ -119,18 +128,11 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
             ExposedDropdownMenu(
                 expanded = genderExpanded,
                 onDismissRequest = { genderExpanded = false },
-                modifier = Modifier
-                    .background(Color.Transparent)
+                modifier = Modifier.background(Color.Transparent)
             ) {
                 genderOptions.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = {
-                            Text(
-                                selectionOption,
-                                color = mintGreen,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
+                        text = { Text(selectionOption, color = mintGreen, style = MaterialTheme.typography.bodyMedium) },
                         onClick = {
                             gender = selectionOption
                             genderExpanded = false
@@ -156,13 +158,12 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         MyCustomTF(height, { height = it }, "Height (cm)", Icons.Default.Height, "Height Icon")
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Profile Picture Upload Button
+        // Profile Picture Upload
         Button(onClick = { launcher.launch("image/*") }) {
             Text("Upload Profile Picture")
         }
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Display selected image (if any)
         profilePicUri?.let { uri ->
             Image(
                 painter = rememberAsyncImagePainter(uri),
@@ -175,9 +176,10 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
             Spacer(modifier = Modifier.height(10.dp))
         }
 
+        // Submit Button
         Button(onClick = {
             val user = User(
-                userID = 0, // Firestore auto-generates document IDs
+                userID = 0,
                 firstName = firstName,
                 middleName = middleName,
                 lastName = lastName,
@@ -198,7 +200,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
                 user,
                 onSuccess = {
                     Toast.makeText(context, "User Registered Successfully", Toast.LENGTH_SHORT).show()
-                    nc.navigate("LoginScreen")
+                    nc.navigate(Screens.LoginScreen.screen)
                 },
                 onFailure = { error ->
                     Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
@@ -209,6 +211,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
