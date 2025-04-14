@@ -42,39 +42,55 @@ class WorkoutViewModel : ViewModel() {
 
     init {
         if (_workouts.isEmpty()) {  // Ensure workouts are only generated once
-            generateWorkouts(3)
+            //generateWorkouts(3)
         }
     }
+
+    private fun filterExercisesByMusclesAndEquipment(
+        muscleGroups: List<String>,
+        equipment: List<String>
+    ): List<Pair<String, Int>> {
+        // For demo purposes: Basic keyword matching
+        return workoutList.zip(workoutImages).filter { (name, _) ->
+            val lowerName = name.lowercase()
+            val matchesMuscle = muscleGroups.any { lowerName.contains(it.lowercase()) }
+            val matchesEquip = equipment.isEmpty() || equipment.any { lowerName.contains(it.lowercase()) }
+            matchesMuscle || matchesEquip
+        }.ifEmpty {
+            // fallback to random if nothing matched
+            workoutList.zip(workoutImages).shuffled()
+        }
+    }
+
 
     /**
      * Generates a random list of workouts based on the specified exercise count.
      * Each workout has randomly generated sets, reps, and rest time.
      */
-    fun generateWorkouts(exerciseNum: Int) {
-        if (_workouts.isNotEmpty()) return // Prevent regenerating workouts if they already exist
+    fun generateWorkouts(muscleGroups: List<String>, sets: Int, reps: Int, equipment: List<String>, duration: Int) {
+        if (_workouts.isNotEmpty()) return
 
         viewModelScope.launch {
-            _workouts.clear() // Clear previous workouts before generating new ones
-            val shuffledExercises = workoutList.zip(workoutImages).shuffled()
-            val selectedExercises = shuffledExercises.take(exerciseNum)
+            _workouts.clear()
 
-            selectedExercises.forEachIndexed { index, (exerciseName, imageResID) ->
-                val setNum = Random.nextInt(3, 6)
-                val repNum = Random.nextInt(3, 15)
-                val restTimeNum = Random.nextInt(1, 5)
+            val filteredExercises = filterExercisesByMusclesAndEquipment(muscleGroups, equipment)
+            val selectedExercises = filteredExercises.shuffled().take(duration / 5) // 1 exercise every 5 min
 
-                val workout = Workout(
-                    index = index + 1,
-                    name = exerciseName,
-                    sets = setNum,
-                    reps = repNum,
-                    restTime = restTimeNum,
-                    imageResID = imageResID
+            selectedExercises.forEachIndexed { index, (name, image) ->
+                _workouts.add(
+                    Workout(
+                        index = index + 1,
+                        name = name,
+                        sets = if (sets > 0) sets else Random.nextInt(3, 5),
+                        reps = if (reps > 0) reps else Random.nextInt(8, 15),
+                        restTime = Random.nextInt(1, 3),
+                        imageResID = image
+                    )
                 )
-                _workouts.add(workout)
             }
         }
     }
+
 
     /**
      * Starts the workout session, iterating through each workout and managing exercise and rest periods.

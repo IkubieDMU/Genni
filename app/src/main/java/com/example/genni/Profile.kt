@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.genni.ui.theme.GenniTheme
 import com.example.genni.ui.theme.deepPurple
@@ -47,6 +48,8 @@ import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.AuthViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun ProfileScreen(authViewModel: AuthViewModel) {
@@ -114,15 +117,10 @@ fun ProfileScreen(authViewModel: AuthViewModel) {
     }
 }
 
-
 @Composable
 fun InfoRow(label: String, value: String) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .background(Color.White.copy(alpha = 0.05f), shape = RoundedCornerShape(12.dp))
-            .padding(12.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).background(Color.White.copy(alpha = 0.05f), shape = RoundedCornerShape(12.dp)).padding(12.dp)
     ) {
         Text(text = label, color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
         Text(text = value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)

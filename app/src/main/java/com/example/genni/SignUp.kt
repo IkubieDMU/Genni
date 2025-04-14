@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,22 +39,25 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.genni.models.User
 import com.example.genni.ui.theme.*
 import com.example.genni.viewmodels.UserViewModel
 import com.google.firebase.storage.FirebaseStorage
-
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import android.app.DatePickerDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
-    // User Input Variables
     var firstName by remember { mutableStateOf("") }
     var middleName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
-    var goal by remember { mutableStateOf("") }
     var yearsOfTraining by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -64,13 +69,10 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             profilePicUri = it
             try {
-                // Persist URI access
                 context.contentResolver.takePersistableUriPermission(
                     it,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -81,8 +83,19 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         }
     }
 
+    // ✅ Goals selection state
+    val goalOptions = listOf("Build Muscle", "Burn Fat", "Improve Cardio")
+    val selectedGoals = remember { mutableStateMapOf<String, Boolean>() }
+    goalOptions.forEach { goal ->
+        if (selectedGoals[goal] == null) selectedGoals[goal] = false
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple))).verticalScroll(scrollState).padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple)))
+            .verticalScroll(scrollState)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Create a new Genni Account", fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = white)
@@ -97,7 +110,6 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         MyCustomTF(age, { age = it }, "Age", Icons.Default.DateRange, "Age Icon")
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Gender Dropdown
         var genderExpanded by remember { mutableStateOf(false) }
         val genderOptions = listOf("M", "F")
 
@@ -132,7 +144,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
             ) {
                 genderOptions.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(selectionOption, color = mintGreen, style = MaterialTheme.typography.bodyMedium) },
+                        text = { Text(selectionOption,color = mintGreen, style = MaterialTheme.typography.bodyMedium) },
                         onClick = {
                             gender = selectionOption
                             genderExpanded = false
@@ -143,7 +155,25 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
             }
         }
 
-        MyCustomTF(goal, { goal = it }, "Goals (Comma separated)", Icons.AutoMirrored.Default.List, "Goals Icon")
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // ✅ Goals Checkboxes UI
+        Text("Select Your Goals", fontSize = 18.sp, color = white, fontWeight = FontWeight.Medium)
+        Spacer(modifier = Modifier.height(8.dp))
+        goalOptions.forEach { goal ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)
+            ) {
+                Checkbox(
+                    checked = selectedGoals[goal] ?: false,
+                    onCheckedChange = { checked -> selectedGoals[goal] = checked },
+                    colors = CheckboxDefaults.colors(checkedColor = mintGreen, uncheckedColor = Color.White)
+                )
+                Text(goal, color = Color.White)
+            }
+        }
+
         Spacer(modifier = Modifier.height(10.dp))
         MyCustomTF(yearsOfTraining, { yearsOfTraining = it }, "Years of Training", Icons.Default.FitnessCenter, "Training Icon")
         Spacer(modifier = Modifier.height(10.dp))
@@ -158,26 +188,25 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         MyCustomTF(height, { height = it }, "Height (cm)", Icons.Default.Height, "Height Icon")
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Profile Picture Upload
         Button(onClick = { launcher.launch("image/*") }) {
             Text("Upload Profile Picture")
         }
+
         Spacer(modifier = Modifier.height(10.dp))
 
         profilePicUri?.let { uri ->
             Image(
-                painter = rememberAsyncImagePainter(uri),
+                painter = rememberAsyncImagePainter(model = ImageRequest.Builder(context).data(uri).crossfade(true).build()),
                 contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.White, CircleShape)
+                modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)).border(2.dp, Color.White, CircleShape),
+                contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
 
-        // Submit Button
         Button(onClick = {
+            val selectedGoalList = selectedGoals.filterValues { it }.keys.toList()
+
             val user = User(
                 userID = 0,
                 firstName = firstName,
@@ -185,7 +214,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
                 lastName = lastName,
                 age = age.toIntOrNull() ?: 0,
                 gender = gender.ifBlank { "M" },
-                goals = goal.split(",").map { it.trim() },
+                goals = selectedGoalList,
                 yearsOfTraining = yearsOfTraining.toIntOrNull() ?: 0,
                 username = username,
                 password = password,
@@ -202,9 +231,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
                     Toast.makeText(context, "User Registered Successfully", Toast.LENGTH_SHORT).show()
                     nc.navigate(Screens.LoginScreen.screen)
                 },
-                onFailure = { error ->
-                    Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
-                }
+                onFailure = { error -> Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show() }
             )
         }) {
             Text("Sign Up")
