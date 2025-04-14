@@ -143,7 +143,6 @@ fun WorkoutCard(workout: Workout) {
     }
 }
 
-
 @Composable
 fun PlayButton(context: Context, navController: NavController, workouts: List<Workout>) {
     Box(

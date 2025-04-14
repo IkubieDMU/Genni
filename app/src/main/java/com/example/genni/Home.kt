@@ -28,20 +28,24 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -65,19 +69,56 @@ import com.example.genni.ui.theme.softLavender
 import com.example.genni.viewmodels.HomeViewModel
 import androidx.compose.runtime.*
 import androidx.compose.ui.res.painterResource
-import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.AuthViewModel
+import com.example.genni.viewmodels.WorkoutViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthViewModel) {
+fun HomeScreen(nc: NavController, homeViewModel: HomeViewModel, authViewModel: AuthViewModel,workoutViewModel: WorkoutViewModel) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val currentUser by authViewModel.currentUser.collectAsState() // Current User's data
+    val currentUser by authViewModel.currentUser.collectAsState()
 
-    // List of drawer item names and their respective routes
+    val context = LocalContext.current
+    val workoutTitles = listOf("Muscle Groups", "Sets & Reps", "Equipment", "Duration")
+
+    var selectedWorkout by remember { mutableStateOf<String?>(null) }
+    var showSheet by remember { mutableStateOf(false) }
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    if (showSheet && selectedWorkout != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showSheet = false
+                selectedWorkout = null
+            },
+            sheetState = sheetState,
+            modifier = Modifier.fillMaxHeight(0.6f)
+        ) {
+            when (selectedWorkout) {
+                "Muscle Groups" -> MuscleGroupSelector { selected ->
+                    homeViewModel.setMuscleGroups(selected)
+                    showSheet = false
+                }
+                "Sets & Reps" -> SetsRepsInput { sets, reps ->
+                    homeViewModel.setSetsAndReps(sets, reps)
+                    showSheet = false
+                }
+                "Equipment" -> EquipmentSelector { selected ->
+                    homeViewModel.setEquipment(selected)
+                    showSheet = false
+                }
+                "Duration" -> DurationSelector { duration ->
+                    homeViewModel.setDuration(duration)
+                    showSheet = false
+                }
+            }
+        }
+    }
+
     val drawerItems = listOf(
         "Home" to Screens.HomeScreen.screen,
         "Health Calculations" to Screens.HealthCalculationsScreen.screen,
@@ -96,15 +137,13 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthV
                 TopAppBar(
                     title = { Text("Genni", color = Color.White, fontWeight = FontWeight.Bold) },
                     navigationIcon = {
-                        //When Clicked, open the Nav Drawer
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = emeraldGreen)
                 )
-            },
-            /*bottomBar = { ModernBottomAppBar() } -> Bottom App Bar Code*/
+            }
         ) { paddingValues ->
             Box(
                 modifier = Modifier
@@ -117,15 +156,14 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthV
                     modifier = Modifier.fillMaxWidth().padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val context = LocalContext.current
-                    var selectedWorkout by remember { mutableStateOf<String?>(null) }
-
-                    Image(painterResource(R.drawable.genniappiconnb), contentDescription = "Genni's Logo", modifier = Modifier.size(70.dp))
+                    Image(
+                        painter = painterResource(R.drawable.genniappiconnb),
+                        contentDescription = "Genni's Logo",
+                        modifier = Modifier.size(70.dp)
+                    )
                     Text("Welcome Back ${currentUser?.firstName ?: "User"}!", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Text("Your AI-Powered Workout Partner", color = Color.White.copy(alpha = 0.8f), fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(40.dp))
-
-                    val workoutTitles = listOf("Muscle Groups", "Sets & Reps", "Equipment", "Duration")
 
                     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         for (i in 0..1) {
@@ -137,23 +175,11 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthV
                                     val index = i * 2 + j
                                     WorkoutBox(workoutTitles[index]) {
                                         selectedWorkout = workoutTitles[index]
+                                        showSheet = true
                                     }
                                 }
                             }
                         }
-                    }
-
-                    if (selectedWorkout != null) {
-                        AlertDialog(
-                            onDismissRequest = { selectedWorkout = null },
-                            confirmButton = {
-                                TextButton(onClick = { selectedWorkout = null }) {
-                                    Text("OK", color = Color.White)
-                                }
-                            },
-                            title = { Text("Workout Info", color = Color.White) },
-                            text = { Text("You selected: $selectedWorkout", color = Color.White.copy(alpha = 0.8f)) }
-                        )
                     }
 
                     Spacer(modifier = Modifier.height(50.dp))
@@ -163,7 +189,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthV
                             .size(90.dp)
                             .clip(CircleShape)
                             .background(emeraldGreen.copy(alpha = 0.9f))
-                            .clickable { viewModel.generateWorkout(nc, context) }
+                            .clickable { homeViewModel.generateWorkout(nc, context, workoutViewModel) }
                             .border(2.dp, Color.White.copy(alpha = 0.7f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -174,6 +200,7 @@ fun HomeScreen(nc: NavController, viewModel: HomeViewModel, authViewModel: AuthV
         }
     }
 }
+
 
 @Composable
 fun DrawerContent(drawerItems: List<Pair<String, String>>, nc: NavController, drawerState: DrawerState, scope: CoroutineScope, authViewModel: AuthViewModel) {
@@ -277,6 +304,7 @@ fun ModernBottomAppBar() {
     }
 }
 
+// Supporting Composables
 @Composable
 fun WorkoutBox(title: String, onClick: () -> Unit) {
     Box(
@@ -292,9 +320,121 @@ fun WorkoutBox(title: String, onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun MuscleGroupSelector(onConfirm: (List<String>) -> Unit) {
+    val options = listOf("Chest", "Back", "Legs", "Arms", "Shoulders", "Core")
+    val selected = remember { mutableStateListOf<String>() }
+
+    Column(Modifier.padding(16.dp)) {
+        Text("Select Muscle Groups", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+        options.forEach { muscle ->
+            Row(
+                Modifier.fillMaxWidth().clickable {
+                    if (selected.contains(muscle)) selected.remove(muscle)
+                    else selected.add(muscle)
+                }.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = muscle in selected, onCheckedChange = null)
+                Text(muscle, modifier = Modifier.padding(start = 8.dp))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(onClick = { onConfirm(selected.toList()) }, modifier = Modifier.align(Alignment.End)) {
+            Text("Confirm")
+        }
+    }
+}
+
+@Composable
+fun SetsRepsInput(onConfirm: (Int, Int) -> Unit) {
+    var sets by remember { mutableStateOf("") }
+    var reps by remember { mutableStateOf("") }
+
+    Column(Modifier.padding(16.dp)) {
+        Text("Enter Sets & Reps", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+        OutlinedTextField(
+            value = sets,
+            onValueChange = { sets = it.filter { c -> c.isDigit() } },
+            label = { Text("Sets") },
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        )
+        OutlinedTextField(
+            value = reps,
+            onValueChange = { reps = it.filter { c -> c.isDigit() } },
+            label = { Text("Reps") },
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(
+            onClick = { onConfirm(sets.toIntOrNull() ?: 0, reps.toIntOrNull() ?: 0) },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("Confirm")
+        }
+    }
+}
+
+@Composable
+fun EquipmentSelector(onConfirm: (List<String>) -> Unit) {
+    val equipmentOptions = listOf("Dumbbells", "Resistance Bands", "Bodyweight", "Kettlebells", "Barbell", "Pull-up Bar")
+    val selected = remember { mutableStateListOf<String>() }
+
+    Column(Modifier.padding(16.dp)) {
+        Text("Select Equipment", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+        equipmentOptions.forEach { item ->
+            Row(
+                Modifier.fillMaxWidth().clickable {
+                    if (item in selected) selected.remove(item)
+                    else selected.add(item)
+                }.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = item in selected, onCheckedChange = null)
+                Text(item, Modifier.padding(start = 8.dp))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(onClick = { onConfirm(selected.toList()) }, modifier = Modifier.align(Alignment.End)) {
+            Text("Confirm")
+        }
+    }
+}
+
+@Composable
+fun DurationSelector(onConfirm: (Int) -> Unit) {
+    var duration by remember { mutableStateOf(15f) } // default duration
+
+    Column(Modifier.padding(16.dp)) {
+        Text("Select Duration (Minutes)", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+
+        Text("${duration.toInt()} min", fontSize = 24.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(vertical = 8.dp))
+
+        Slider(
+            value = duration,
+            onValueChange = { duration = it },
+            valueRange = 5f..60f,
+            steps = 11, // intervals of 5 mins
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(onClick = { onConfirm(duration.toInt()) }, modifier = Modifier.align(Alignment.End)) {
+            Text("Confirm")
+        }
+    }
+}
+
+
 @Preview
 @Composable
 fun HomeScreenPreview() {
     val nc = rememberNavController()
-    GenniTheme { HomeScreen(nc, HomeViewModel(), AuthViewModel()) }
+    GenniTheme { HomeScreen(nc, HomeViewModel(), AuthViewModel(), WorkoutViewModel()) }
 }

@@ -11,31 +11,61 @@ import kotlinx.coroutines.flow.StateFlow
 // ViewModel to manage the UI state of the HomeScreen
 class HomeViewModel : ViewModel() {
 
-    // Holds the selected workout category
-    // MutableStateFlow allows us to update and observe state changes reactively
     private val _selectedWorkout = MutableStateFlow<String?>(null)
-
-    // Publicly exposed immutable StateFlow so the UI can observe changes
     val selectedWorkout: StateFlow<String?> = _selectedWorkout
 
-    /**
-     * Updates the selected workout category when a user clicks on a workout option.
-     * @param workout The name of the selected workout category.
-     */
-    fun selectWorkout(workout: String,context: Context) {
-        _selectedWorkout.value = workout  // Updates the selected workout state
+    // Muscle Groups selection
+    private val _selectedMuscleGroups = MutableStateFlow<List<String>>(emptyList())
+    val selectedMuscleGroups: StateFlow<List<String>> = _selectedMuscleGroups
+
+    // Sets and Reps selection
+    private val _sets = MutableStateFlow(0)
+    private val _reps = MutableStateFlow(0)
+    val sets: StateFlow<Int> = _sets
+    val reps: StateFlow<Int> = _reps
+
+    // Equipment selection
+    private val _selectedEquipment = MutableStateFlow<List<String>>(emptyList())
+    val selectedEquipment: StateFlow<List<String>> = _selectedEquipment
+
+    // Duration selection
+    private val _duration = MutableStateFlow(15) // Default to 15 minutes
+    val duration: StateFlow<Int> = _duration
+
+    fun selectWorkout(workout: String, context: Context) {
+        _selectedWorkout.value = workout
         Toast.makeText(context, "$workout selected", Toast.LENGTH_SHORT).show()
     }
 
-    /**
-     * Triggers workout generation, displays a Toast message, and navigates to the GeneratedWorkoutScreen.
-     * @param nc The NavController used for navigation.
-     * @param context The application context required for showing the Toast message.
-     */
-    fun generateWorkout(nc: NavController, context: Context) {
-        // Show a message to confirm workout generation
+    fun setMuscleGroups(muscleGroups: List<String>) {
+        _selectedMuscleGroups.value = muscleGroups
+    }
+
+    fun setSetsAndReps(sets: Int, reps: Int) {
+        _sets.value = sets
+        _reps.value = reps
+    }
+
+    fun setEquipment(equipment: List<String>) {
+        _selectedEquipment.value = equipment
+    }
+
+    fun setDuration(minutes: Int) {
+        _duration.value = minutes
+    }
+
+    fun generateWorkout(nc: NavController, context: Context, workoutViewModel: WorkoutViewModel) {
+        workoutViewModel.generateWorkouts(
+            muscleGroups = selectedMuscleGroups.value,
+            sets = sets.value,
+            reps = reps.value,
+            equipment = selectedEquipment.value,
+            duration = duration.value
+        )
+
         Toast.makeText(context, "Workout Generated!", Toast.LENGTH_SHORT).show()
-        // Navigate to the generated workout screen
         nc.navigate(Screens.GeneratedWorkoutScreen.screen)
     }
+
 }
+

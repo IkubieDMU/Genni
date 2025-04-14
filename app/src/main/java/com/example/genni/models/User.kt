@@ -1,5 +1,7 @@
 package com.example.genni.models
 
+import java.util.Date
+
 // User Data Model
 data class User(
     val userID: Int,
