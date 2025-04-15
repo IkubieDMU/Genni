@@ -56,7 +56,7 @@ class HomeViewModel : ViewModel() {
 
     fun generateWorkout(nc: NavController, context: Context, workoutViewModel: WorkoutViewModel) {
         workoutViewModel.generateWorkouts(
-            muscleGroups = selectedMuscleGroups.value,
+            muscles = selectedMuscleGroups.value,
             sets = sets.value,
             reps = reps.value,
             equipment = selectedEquipment.value,
@@ -66,6 +66,5 @@ class HomeViewModel : ViewModel() {
         Toast.makeText(context, "Workout Generated!", Toast.LENGTH_SHORT).show()
         nc.navigate(Screens.GeneratedWorkoutScreen.screen)
     }
-
 }
 

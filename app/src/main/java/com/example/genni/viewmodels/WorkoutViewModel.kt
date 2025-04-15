@@ -1,175 +1,172 @@
 package com.example.genni.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.genni.R
 import com.example.genni.models.Workout
+import com.example.genni.models.WorkoutDTO
 import com.example.genni.states.WorkoutState
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class WorkoutViewModel : ViewModel() {
 
-    // Mutable list that holds the generated workouts
+    private val _allWorkouts = mutableStateListOf<Workout>()
+    val allWorkouts: List<Workout> get() = _allWorkouts
+
     private val _workouts = mutableStateListOf<Workout>()
-    // Publicly accessible list of workouts (read-only)
     val workouts: List<Workout> get() = _workouts
 
-    // Holds the index of the current exercise being performed (Using MutableState for Compose recomposition)
     var currentExerciseIndex = mutableStateOf(0)
-    // Holds the current set number of the ongoing exercise (Using MutableState for Compose recomposition)
     var currentSet = mutableStateOf(1)
-    // Tracks the current state of the workout - Exercise, Rest, or Completed (Using MutableState for Compose recomposition)
     var currentState = mutableStateOf(WorkoutState.Exercise)
-    // Time remaining for an exercise or rest period (in seconds) (Using MutableState for Compose recomposition)
     var timeLeft = mutableStateOf(0)
 
-    // List of exercises from which workouts will be randomly generated
-    private val workoutList = listOf(
-        "Push-Ups", "Bench Press", "Incline Barbell Press", "Chest Fly", "Dips",
-        "Pull-Ups", "Deadlifts", "BB Shoulder Press", "Lat Pulldowns", "Seated Cable Rows",
-        "DB/BB Squats", "Lunges", "Leg Press", "Calf Raises", "Hamstring Curls",
-    )
-
-    private val workoutImages = listOf(
-        R.drawable.pushups, R.drawable.benchpress, R.drawable.ibpress, R.drawable.chestfly, R.drawable.dips,
-        R.drawable.pullups, R.drawable.deadlift, R.drawable.bbshoulderpress, R.drawable.pulldowns, R.drawable.cablerows,
-        R.drawable.squats, R.drawable.lunges, R.drawable.legpress, R.drawable.calfraises, R.drawable.hamstringcurls,
-    )
-
     init {
-        if (_workouts.isEmpty()) {  // Ensure workouts are only generated once
-            //generateWorkouts(3)
+        fetchWorkoutsFromFirestore()
+    }
+
+    private fun fetchWorkoutsFromFirestore() {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("Workouts")
+            .get()
+            .addOnSuccessListener { result ->
+                _allWorkouts.clear()
+                for (document in result) {
+                    val dto = document.toObject(WorkoutDTO::class.java)
+                    _allWorkouts.add(
+                        Workout(
+                            index = 0,
+                            name = dto.name,
+                            muscleGroupWorked = dto.muscleGroupWorked,
+                            sets = dto.sets,
+                            reps = dto.reps,
+                            restTime = dto.restTime,
+                            imageResID = getImageResId(dto.imageName),
+                            equipmentUsed = dto.equipmentUsed
+                        )
+                    )
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("Firestore", "Failed to fetch workouts", exception)
+            }
+    }
+
+    private fun getImageResId(imageName: String): Int {
+        return when (imageName.lowercase()) {
+            //TODO: Fill in all the others later
+            "plank" -> R.drawable.plank
+            "mountainclimbers" -> R.drawable.mountainclimbers
+            "russiantwists" -> R.drawable.russiantwists
+            "burpees" -> R.drawable.burpees
+            "jumpsquats" -> R.drawable.jumpsquats
+            "highknees" -> R.drawable.highknees
+            "tricepdips" -> R.drawable.dips
+            "bicepcurls" -> R.drawable.bicepcurls
+            "shouldertaps" -> R.drawable.shouldertaps
+            "supermanhold" -> R.drawable.supermanhold
+            else -> R.drawable.na
         }
     }
 
-    private fun filterExercisesByMusclesAndEquipment(
-        muscleGroups: List<String>,
-        equipment: List<String>
-    ): List<Pair<String, Int>> {
-        // For demo purposes: Basic keyword matching
-        return workoutList.zip(workoutImages).filter { (name, _) ->
-            val lowerName = name.lowercase()
-            val matchesMuscle = muscleGroups.any { lowerName.contains(it.lowercase()) }
-            val matchesEquip = equipment.isEmpty() || equipment.any { lowerName.contains(it.lowercase()) }
-            matchesMuscle || matchesEquip
-        }.ifEmpty {
-            // fallback to random if nothing matched
-            workoutList.zip(workoutImages).shuffled()
-        }
+    private fun filterExercisesBy(muscles: List<String>, equipment: List<String>): List<Workout> {
+        return _allWorkouts.filter { workout ->
+            val matchMuscle = workout.muscleGroupWorked.any { it in muscles }
+            val matchEquip = equipment.isEmpty() || workout.equipmentUsed.any { it in equipment }
+            matchMuscle && matchEquip
+        }.ifEmpty { _allWorkouts.shuffled() }
     }
 
-
-    /**
-     * Generates a random list of workouts based on the specified exercise count.
-     * Each workout has randomly generated sets, reps, and rest time.
-     */
-    fun generateWorkouts(muscleGroups: List<String>, sets: Int, reps: Int, equipment: List<String>, duration: Int) {
-        if (_workouts.isNotEmpty()) return
-
+    fun generateWorkouts(muscles: List<String>, sets: Int, reps: Int, equipment: List<String>, duration: Int) {
         viewModelScope.launch {
             _workouts.clear()
+            val filtered = filterExercisesBy(muscles, equipment)
+            val count = duration / 5
+            val selected = filtered.shuffled().take(count)
 
-            val filteredExercises = filterExercisesByMusclesAndEquipment(muscleGroups, equipment)
-            val selectedExercises = filteredExercises.shuffled().take(duration / 5) // 1 exercise every 5 min
-
-            selectedExercises.forEachIndexed { index, (name, image) ->
+            selected.forEachIndexed { index, workout ->
                 _workouts.add(
-                    Workout(
+                    workout.copy(
                         index = index + 1,
-                        name = name,
-                        sets = if (sets > 0) sets else Random.nextInt(3, 5),
-                        reps = if (reps > 0) reps else Random.nextInt(8, 15),
-                        restTime = Random.nextInt(1, 3),
-                        imageResID = image
+                        sets = sets.takeIf { it > 0 } ?: Random.nextInt(3, 5),
+                        reps = reps.takeIf { it > 0 } ?: Random.nextInt(8, 15),
+                        restTime = Random.nextInt(1, 3)
                     )
                 )
             }
         }
     }
 
-
-    /**
-     * Starts the workout session, iterating through each workout and managing exercise and rest periods.
-     * Automatically transitions to the next set or workout after completion.
-     */
-    fun startWorkout(workouts: List<Workout>, onFinished: () -> Unit) {
+    fun startWorkout(onFinished: () -> Unit) {
         if (currentExerciseIndex.value >= workouts.size) {
-            onFinished() // If all exercises are completed, call the completion callback
+            onFinished()
             return
         }
 
-        // Get the current workout based on the index
         val currentWorkout = workouts[currentExerciseIndex.value]
-
-        // Initialize the timer based on the workout's rest time (in seconds)
         timeLeft.value = currentWorkout.restTime * 60
 
         viewModelScope.launch {
             while (currentExerciseIndex.value < workouts.size) {
                 when (currentState.value) {
-                    WorkoutState.Exercise -> { // When performing an exercise
-                        timeLeft.value = 60 // Set a default exercise duration of 60 seconds
+                    WorkoutState.Exercise -> {
+                        timeLeft.value = 60
                         while (timeLeft.value > 0) {
-                            delay(1000) // Wait for 1 second before decreasing the timer
+                            delay(1000)
                             timeLeft.value--
                         }
 
-                        if (currentSet.value >= currentWorkout.sets) { // If all sets are completed
-                            currentSet.value = 1 // Reset set counter
-                            currentExerciseIndex.value++ // Move to the next exercise
-                            currentState.value = WorkoutState.Rest // Transition to Rest state
+                        if (currentSet.value >= currentWorkout.sets) {
+                            currentSet.value = 1
+                            currentExerciseIndex.value++
+                            currentState.value = WorkoutState.Rest
                         } else {
-                            currentSet.value++ // Proceed to the next set
+                            currentSet.value++
                         }
                     }
 
-                    WorkoutState.Rest -> { // When resting between exercises
+                    WorkoutState.Rest -> {
                         while (timeLeft.value > 0) {
-                            delay(1000) // Wait for 1 second before decreasing the timer
+                            delay(1000)
                             timeLeft.value--
                         }
-                        currentState.value =
-                            WorkoutState.Exercise // Switch back to exercise state
+                        currentState.value = WorkoutState.Exercise
                     }
 
-                    WorkoutState.Completed -> { // When the workout session is completed
-                        onFinished() // Trigger the callback to indicate workout completion
+                    WorkoutState.Completed -> {
+                        onFinished()
                         return@launch
                     }
                 }
             }
         }
     }
-    /**
-     * Skips the current set and moves to the rest state.
-     */
+
     fun skipSet() {
-        val currentWorkout = workouts.getOrNull(currentExerciseIndex.value)
-        if (currentWorkout != null) {
-            if (currentSet.value >= currentWorkout.sets) {
-                // If all sets for the current exercise are done, move to the next exercise
+        val workout = workouts.getOrNull(currentExerciseIndex.value)
+        if (workout != null) {
+            if (currentSet.value >= workout.sets) {
                 currentSet.value = 1
                 currentExerciseIndex.value++
                 currentState.value = WorkoutState.Rest
             } else {
-                // Move to the next set and reset the timer
                 currentSet.value++
-                timeLeft.value = 60 // Resetting timer to 60 seconds for the next set
+                timeLeft.value = 60
                 currentState.value = WorkoutState.Exercise
             }
         }
     }
 
-    /**
-     * Skips the current exercise and moves to the next one.
-     */
     fun skipExercise() {
-        currentExerciseIndex.value++ // Move to the next exercise
-        currentSet.value = 1 // Reset the set counter for the next exercise
-        currentState.value = WorkoutState.Exercise // Start exercising immediately
+        currentExerciseIndex.value++
+        currentSet.value = 1
+        currentState.value = WorkoutState.Exercise
     }
 }
+

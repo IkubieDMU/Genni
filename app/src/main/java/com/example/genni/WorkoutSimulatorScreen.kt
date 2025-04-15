@@ -32,58 +32,58 @@ import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.WorkoutViewModel
 
 @Composable
-fun WorkoutSimulatorScreen(viewModel: WorkoutViewModel,onWorkoutCompleted: () -> Unit) {
-
-    val workouts = viewModel.workouts // Retrieve the workouts from ViewModel
+fun WorkoutSimulatorScreen(viewModel: WorkoutViewModel, onWorkoutCompleted: () -> Unit) {
+    val workouts = viewModel.workouts
     val currentExerciseIndex by viewModel.currentExerciseIndex
     val currentSet by viewModel.currentSet
     val currentState by viewModel.currentState
     val timeLeft by viewModel.timeLeft
     val currentExercise = workouts.getOrNull(currentExerciseIndex)
 
-
     if (currentExercise == null) {
-        Text("Workout Completed!", fontSize = 24.sp, color = Color.White)
         onWorkoutCompleted()
         return
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(deepPurple, Color(0xFF111328)))).padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(deepPurple, Color(0xFF111328))))
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(painterResource(currentExercise.imageResID),"Content Description", modifier = Modifier.size(150.dp))
+        Image(
+            painter = painterResource(currentExercise.imageResID),
+            contentDescription = "Exercise Image",
+            modifier = Modifier.size(150.dp)
+        )
+
         Text(
-            "${currentExercise.name}",
+            text = currentExercise.name,
             fontSize = 36.sp,
             fontWeight = FontWeight.ExtraBold,
             color = white,
             modifier = Modifier.padding(8.dp)
         )
+
         Text(
-            "Set: $currentSet / ${currentExercise.sets}",
+            text = "Set: $currentSet / ${currentExercise.sets}",
             fontSize = 22.sp,
             color = white
         )
 
-        // Minute Options
-        var timeSuffix = ""
-
-        if (currentExercise.restTime == 1) {
-            timeSuffix = "min"
-        } else {
-            timeSuffix = "mins"
-        }
+        val timeSuffix = if (currentExercise.restTime == 1) "min" else "mins"
         Text(
-            "Rest Time: ${currentExercise.restTime} $timeSuffix", //60 * currentWorkout RestTime (in minutes) -> Convert to seconds
+            text = "Rest Time: ${currentExercise.restTime} $timeSuffix",
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
             color = white,
             modifier = Modifier.padding(top = 8.dp)
         )
+
         Text(
-            "${currentExercise.restTime * timeLeft}s", //60 * currentWorkout RestTime (in minutes) -> Convert to seconds
+            text = "${timeLeft}s",
             fontSize = 35.sp,
             color = white,
             modifier = Modifier.padding(top = 8.dp)
@@ -91,7 +91,6 @@ fun WorkoutSimulatorScreen(viewModel: WorkoutViewModel,onWorkoutCompleted: () ->
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Top Row Buttons (Skip Set and Skip Exercise)
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier
@@ -102,7 +101,9 @@ fun WorkoutSimulatorScreen(viewModel: WorkoutViewModel,onWorkoutCompleted: () ->
                 onClick = { viewModel.skipSet() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE)),
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.weight(1f).padding(8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
             ) {
                 Text("Skip Set", color = Color.White)
             }
@@ -111,23 +112,27 @@ fun WorkoutSimulatorScreen(viewModel: WorkoutViewModel,onWorkoutCompleted: () ->
                 onClick = { viewModel.skipExercise() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.weight(1f).padding(8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
             ) {
                 Text("Skip Exercise", color = Color.White)
             }
         }
 
-        // Start/Next Button Below
         Button(
-            onClick = { viewModel.startWorkout(workouts, onWorkoutCompleted) },
+            onClick = { viewModel.startWorkout(onWorkoutCompleted) },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
             Text("Start / Next", color = Color.White, modifier = Modifier.padding(8.dp))
         }
     }
 }
+
 
 
 // Preview of the Application

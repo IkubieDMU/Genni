@@ -65,8 +65,8 @@ import com.example.genni.viewmodels.WorkoutViewModel
 import kotlin.random.Random
 
 @Composable
-fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel, navController: NavController) {
-    val workouts by remember { derivedStateOf { viewModel.workouts }} // Uses the existing workouts
+fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: NavController) {
+    val workouts by remember { derivedStateOf { workoutViewModel.workouts } }
     val context = LocalContext.current.applicationContext
 
     Column(
@@ -77,71 +77,95 @@ fun GeneratedWorkoutScreen(viewModel: WorkoutViewModel, navController: NavContro
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         Text(
-            "Generated Workout",
+            text = "Generated Workout",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         )
 
-        workouts.forEach { workout ->
-            WorkoutCard(workout)
+        workouts.forEachIndexed { index, workout ->
+            WorkoutCard(workout = workout.copy(index = index + 1))
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         Box(modifier = Modifier.fillMaxWidth()) {
-            PlayButton(context = context, navController = navController, workouts = workouts)
+            PlayButton(
+                context = context,
+                navController = navController,
+                workouts = workouts
+            )
         }
     }
 }
+
+
 
 
 @Composable
 fun WorkoutCard(workout: Workout) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(8.dp).shadow(8.dp, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .shadow(8.dp, RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(20.dp)),
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple)), shape = CircleShape)
-                    .clip(CircleShape)
-                    .border(width = 2.dp, color = deepPurple, shape = CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                // Current Exercise Image
-                Image(
-                    painter = painterResource(id = workout.imageResID),
-                    contentDescription = "Workout Icon",
-                    modifier = Modifier.size(50.dp),
-                    contentScale = ContentScale.Crop
-                )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple)), shape = CircleShape)
+                        .clip(CircleShape)
+                        .border(2.dp, deepPurple, shape = CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = workout.imageResID),
+                        contentDescription = "Workout Icon",
+                        modifier = Modifier.size(50.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Exercise ${workout.index}: ${workout.name}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = deepPurple
+                    )
+                    Text(
+                        text = "Sets: ${workout.sets} | Reps: ${workout.reps} | Rest: ${workout.restTime} min",
+                        fontSize = 14.sp,
+                        color = deepPurple.copy(alpha = 0.7f)
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Exercise ${workout.index}: ${workout.name}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = deepPurple
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Sets: ${workout.sets} | Reps: ${workout.reps} | Rest: ${workout.restTime} min(s)",
-                    fontSize = 14.sp,
-                    color = deepPurple.copy(alpha = 0.7f)
-                )
-            }
+            Text(
+                text = "Muscles: ${workout.muscleGroupWorked.joinToString()}",
+                fontSize = 14.sp,
+                color = Color.Black.copy(alpha = 0.8f)
+            )
+            Text(
+                text = "Equipment: ${workout.equipmentUsed.joinToString()}",
+                fontSize = 14.sp,
+                color = Color.Black.copy(alpha = 0.8f)
+            )
         }
     }
 }
+
 
 @Composable
 fun PlayButton(context: Context, navController: NavController, workouts: List<Workout>) {
