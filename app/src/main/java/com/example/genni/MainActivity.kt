@@ -71,10 +71,7 @@ fun App() {
             composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(workoutViewModel, navigationController) }
             composable(Screens.WorkoutSimulatorScreen.screen) {
                 WorkoutSimulatorScreen(
-                    viewModel = workoutViewModel,
-                    onWorkoutCompleted = {
-                        navigationController.popBackStack()
-                    }
+                    viewModel = workoutViewModel, onWorkoutCompleted = { navigationController.popBackStack() }
                 )
             }
             composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(HCViewModel()) }
