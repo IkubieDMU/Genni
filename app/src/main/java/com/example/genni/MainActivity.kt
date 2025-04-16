@@ -74,7 +74,7 @@ fun App() {
                     viewModel = workoutViewModel, onWorkoutCompleted = { navigationController.popBackStack() }
                 )
             }
-            composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(HCViewModel()) }
+            composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(navigationController,HCViewModel(),authViewModel) }
             composable(Screens.BreathingExercisesScreen.screen) { BreathingExercisesScreen(navigationController, BEViewModel()) }
             composable(Screens.BreathingExercisesSimulatorScreen.screen) { BESimulatorScreen(BEViewModel()) { } }
             composable(Screens.SettingsScreen.screen) { SettingsScreen(navigationController, authViewModel, appSettingsViewModel) }
@@ -85,6 +85,7 @@ fun App() {
             composable(Screens.AdminHomeScreen.screen) { AdminHomeScreen() }
             composable(Screens.AdminLoginScreen.screen) { AdminLoginScreen(navigationController, adminViewModel, authViewModel) }
             composable(Screens.AdminSignUpScreen.screen) { AdminSignUpScreen(navigationController,adminViewModel) }
+            composable(Screens.HCExplanationScreen.screen) { HealthMetricsExplanationScreen(navigationController) }
         }
     }
 }
