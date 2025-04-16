@@ -45,11 +45,15 @@ class HCViewModel : ViewModel() {
     private val _tdee = MutableStateFlow<Double?>(null)
     val tdee: StateFlow<Double?> = _tdee.asStateFlow()
 
-    private val _proteinIntake = MutableStateFlow<Double?>(null)
-    val proteinIntake: StateFlow<Double?> = _proteinIntake.asStateFlow()
+    private val _proteinIntake = MutableStateFlow<Pair<Double, Double>?>(null)
+    val proteinIntake: StateFlow<Pair<Double, Double>?> = _proteinIntake.asStateFlow()
 
     private val _waterIntake = MutableStateFlow<Double?>(null)
     val waterIntake: StateFlow<Double?> = _waterIntake.asStateFlow()
+
+    private val _calculated = MutableStateFlow(false)
+    val calculated: StateFlow<Boolean> = _calculated.asStateFlow()
+
 
     fun onWeightChange(newWeight: String) { _weightInput.value = newWeight }
     fun onHeightChange(newHeight: String) { _heightInput.value = newHeight }
@@ -59,43 +63,49 @@ class HCViewModel : ViewModel() {
     fun onActivityLevelChange(newLevel: String) { _activityLevelInput.value = newLevel }
 
     fun calculate() {
+        if (_calculated.value) return // Already calculated
+
         val weight = weightInput.value.toDoubleOrNull()
-        val height = heightInput.value.toDoubleOrNull()?.div(100) // Convert cm to m
+        val height = heightInput.value.toDoubleOrNull()?.div(100) // Convert cm to meters
         val age = ageInput.value.toIntOrNull()
         val muscleMassPercentage = muscleMassPercentageInput.value.toDoubleOrNull()?.div(100)
         val activityLevel = activityLevelInput.value.toDoubleOrNull()
 
-        if (weight != null && height != null && age != null && activityLevel != null) {
-            // BMI
-            _bmi.value = weight / height.pow(2)
+        // Exit early if any required value is missing
+        if (weight == null || height == null || age == null || activityLevel == null) return
 
-            // BMR
-            _bmr.value = if (genderInput.value == "Male") {
-                88.362 + (13.397 * weight) + (4.799 * height * 100) - (5.677 * age)
-            } else {
-                447.593 + (9.247 * weight) + (3.098 * height * 100) - (4.330 * age)
-            }
+        // BMI
+        val bmiValue = weight / height.pow(2)
+        _bmi.value = bmiValue
 
-            // BFP
-            _bfp.value = if (genderInput.value == "Male") {
-                1.20 * (_bmi.value ?: 0.0) + 0.23 * age - 16.2
-            } else {
-                1.20 * (_bmi.value ?: 0.0) + 0.23 * age - 5.4
-            }
-
-            // TDEE
-            _tdee.value = _bmr.value?.times(activityLevel)
-
-            // Muscle Mass Calculation
-            if (muscleMassPercentage != null) {
-                _muscleMass.value = weight * muscleMassPercentage
-            }
-
-            // Protein Intake
-            _proteinIntake.value = weight * 1.6
-
-            // Water Intake
-            _waterIntake.value = weight * 0.033
+        // BMR
+        val bmrValue = if (genderInput.value == "Male") {
+            88.362 + (13.397 * weight) + (4.799 * height * 100) - (5.677 * age)
+        } else {
+            447.593 + (9.247 * weight) + (3.098 * height * 100) - (4.330 * age)
         }
+        _bmr.value = bmrValue
+
+        // BFP
+        val bfpValue = if (genderInput.value == "Male") {
+            1.20 * bmiValue + 0.23 * age - 16.2
+        } else {
+            1.20 * bmiValue + 0.23 * age - 5.4
+        }
+        _bfp.value = bfpValue
+
+        // TDEE
+        _tdee.value = bmrValue * activityLevel
+
+        // Muscle Mass (optional)
+        muscleMassPercentage?.let { _muscleMass.value = weight * it }
+
+        // Protein Intake Range (1.6g - 2.2g per kg)
+        _proteinIntake.value = Pair(weight * 1.6, weight * 2.2)
+
+        // Water Intake (0.033L per kg)
+        _waterIntake.value = weight * 0.033
+
+        _calculated.value = true // Mark as done
     }
 }
