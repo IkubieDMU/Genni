@@ -169,4 +169,3 @@ class WorkoutViewModel : ViewModel() {
         currentState.value = WorkoutState.Exercise
     }
 }
-
