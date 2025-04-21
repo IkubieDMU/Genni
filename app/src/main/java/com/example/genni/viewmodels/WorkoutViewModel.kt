@@ -77,10 +77,14 @@ class WorkoutViewModel : ViewModel() {
 
     private fun filterExercisesBy(muscles: List<String>, equipment: List<String>): List<Workout> {
         return _allWorkouts.filter { workout ->
-            val matchMuscle = workout.muscleGroupWorked.any { it in muscles }
-            val matchEquip = equipment.isEmpty() || workout.equipmentUsed.any { it in equipment }
+            val matchMuscle = workout.muscleGroupWorked.any { it.trim().equalsAnyIgnoreCase(muscles) }
+            val matchEquip = equipment.isEmpty() || workout.equipmentUsed.any { it.trim().equalsAnyIgnoreCase(equipment) }
             matchMuscle && matchEquip
         }.ifEmpty { _allWorkouts.shuffled() }
+    }
+
+    private fun String.equalsAnyIgnoreCase(list: List<String>): Boolean {
+        return list.any { it.equals(this, ignoreCase = true) }
     }
 
     fun generateWorkouts(muscles: List<String>, sets: Int, reps: Int, equipment: List<String>, duration: Int) {

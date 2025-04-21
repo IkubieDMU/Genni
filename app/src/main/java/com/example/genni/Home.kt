@@ -206,7 +206,9 @@ fun HomeScreen(nc: NavController, homeViewModel: HomeViewModel, authViewModel: A
 fun DrawerContent(drawerItems: List<Pair<String, String>>, nc: NavController, drawerState: DrawerState, scope: CoroutineScope, authViewModel: AuthViewModel) {
     // Smooth gradient background with a floating effect
     Box(
-        modifier = Modifier.fillMaxHeight().width(250.dp)
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(250.dp)
             .background(Brush.verticalGradient(listOf(deepPurple, emeraldGreen)))
             .shadow(10.dp, RoundedCornerShape(topEnd = 30.dp, bottomEnd = 30.dp))
     ) {
@@ -316,10 +318,13 @@ fun WorkoutBox(title: String, onClick: () -> Unit) {
 
 @Composable
 fun MuscleGroupSelector(onConfirm: (List<String>) -> Unit) {
-    val options = listOf("Chest", "Back", "Legs", "Arms", "Shoulders", "Core")
+    val options = listOf(
+        "Chest", "Back", "Legs", "Shoulders", "Core", "Obliques", "Triceps", "Biceps",
+        "Glutes", "Quads", "Hamstrings", "Calves", "Full Body", "Cardio"
+    )
     val selected = remember { mutableStateListOf<String>() }
 
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
         Text("Select Muscle Groups", fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
         options.forEach { muscle ->
@@ -468,10 +473,14 @@ fun SetsRepsInput(onConfirm: (Int, Int) -> Unit) {
 
 @Composable
 fun EquipmentSelector(onConfirm: (List<String>) -> Unit) {
-    val equipmentOptions = listOf("Dumbbells", "Resistance Bands", "Bodyweight", "Kettlebells", "Barbell", "Pull-up Bar")
+    val equipmentOptions = listOf(
+        "Bodyweight", "Dumbbells", "Barbell", "Resistance Bands", "Bench", "Dip Bar",
+        "Cable Machine", "Smith Machine", "Kettlebell", "Pulley Machine", "Leg Curl Machine",
+        "Leg Press Machine", "Pull-up Bar", "Medicine Ball", "Weighted Vest (Optional)"
+    )
     val selected = remember { mutableStateListOf<String>() }
 
-    Column(Modifier.padding(16.dp)) {
+    Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
         Text("Select Equipment", fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
         equipmentOptions.forEach { item ->
