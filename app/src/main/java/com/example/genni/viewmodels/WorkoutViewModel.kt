@@ -1,5 +1,7 @@
 package com.example.genni.viewmodels
 
+import android.content.Context
+import android.content.res.Resources
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -171,5 +173,79 @@ class WorkoutViewModel : ViewModel() {
         currentExerciseIndex.value++
         currentSet.value = 1
         currentState.value = WorkoutState.Exercise
+    }
+
+    val savedWorkouts = mutableStateListOf<Pair<String, List<Workout>>>()
+
+    fun loadSavedWorkouts(userId: String) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("Users").document(userId).collection("SavedWorkouts")
+            .get()
+            .addOnSuccessListener { result ->
+                savedWorkouts.clear()
+                for (doc in result) {
+                    val name = doc.getString("name") ?: "Unnamed"
+                    val exercises = (doc["exercises"] as? List<Map<String, Any>>)?.map { it.toWorkout() } ?: emptyList()
+                    savedWorkouts.add(name to exercises)
+                }
+            }
+    }
+
+    fun Map<String, Any>.toWorkout(): Workout {
+        return Workout(
+            index = (this["index"] as Long).toInt(),
+            name = this["name"] as String,
+            sets = (this["sets"] as Long).toInt(),
+            reps = (this["reps"] as Long).toInt(),
+            restTime = (this["restTime"] as Long).toInt(),
+            muscleGroupWorked = this["muscleGroupWorked"] as List<String>,
+            equipmentUsed = this["equipmentUsed"] as List<String>,
+            imageResID = getImageResId(this["imageName"] as String)
+        )
+    }
+
+
+    fun saveCurrentWorkout(context: Context, name: String, userId: String, onResult: (Boolean) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val workoutMap = mapOf(
+            "name" to name,
+            "timestamp" to System.currentTimeMillis(),
+            "exercises" to workouts.map { it.toMap(context) }
+        )
+
+        db.collection("Users")
+            .document(userId)
+            .collection("SavedWorkouts")
+            .add(workoutMap)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    fun getImageNameFromRes(context: Context, resId: Int): String {
+        return try {
+            context.resources.getResourceEntryName(resId)
+        } catch (e: Resources.NotFoundException) {
+            "unknown_image"
+        }
+    }
+
+
+    // Helper to serialize
+    fun Workout.toMap(context: Context): Map<String, Any> {
+        return mapOf(
+            "index" to index,
+            "name" to name,
+            "sets" to sets,
+            "reps" to reps,
+            "restTime" to restTime,
+            "muscleGroupWorked" to muscleGroupWorked,
+            "equipmentUsed" to equipmentUsed,
+            "imageName" to getImageNameFromRes(context, imageResID)
+        )
+    }
+
+    fun setCurrentWorkout(newWorkout: List<Workout>) {
+        _workouts.clear()
+        _workouts.addAll(newWorkout)
     }
 }
