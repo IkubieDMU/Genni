@@ -25,15 +25,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +69,7 @@ import com.example.genni.ui.theme.royalPurple
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.WorkoutViewModel
+import com.google.firebase.auth.FirebaseAuth
 import kotlin.random.Random
 
 @Composable
@@ -69,12 +77,42 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
     val workouts by remember { derivedStateOf { workoutViewModel.workouts } }
     val context = LocalContext.current.applicationContext
 
+    var showSaveDialog by remember { mutableStateOf(false) }
+    var workoutName by remember { mutableStateOf("") }
+
+    if (showSaveDialog) {
+        AlertDialog(
+            onDismissRequest = { showSaveDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@TextButton
+                    workoutViewModel.saveCurrentWorkout(context,workoutName, userId) { success ->
+                        Toast.makeText(context, if (success) "Workout saved!" else "Failed to save", Toast.LENGTH_SHORT).show()
+                        showSaveDialog = false
+                    }
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSaveDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text("Name Your Workout") },
+            text = {
+                OutlinedTextField(
+                    value = workoutName,
+                    onValueChange = { workoutName = it },
+                    label = { Text("Workout Name") }
+                )
+            }
+        )
+    }
+
+
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender)))
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 24.dp)
+        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         Text(
             text = "Generated Workout",
@@ -82,9 +120,7 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
             fontWeight = FontWeight.Bold,
             color = Color.White,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
 
         workouts.forEachIndexed { index, workout ->
@@ -93,12 +129,16 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
         }
 
         Box(modifier = Modifier.fillMaxWidth()) {
-            PlayButton(
-                context = context,
-                navController = navController,
-                workouts = workouts
-            )
+            PlayButton(context, navController, workouts)
         }
+        Button(
+            onClick = { showSaveDialog = true },
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = deepPurple)
+        ) {
+            Text("Save This Workout", color = Color.White)
+        }
+
     }
 }
 
@@ -108,11 +148,7 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
 @Composable
 fun WorkoutCard(workout: Workout) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .shadow(8.dp, RoundedCornerShape(20.dp))
-            .clip(RoundedCornerShape(20.dp)),
+        modifier = Modifier.fillMaxWidth().padding(8.dp).shadow(8.dp, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)),
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -170,9 +206,7 @@ fun WorkoutCard(workout: Workout) {
 @Composable
 fun PlayButton(context: Context, navController: NavController, workouts: List<Workout>) {
     Box(
-        modifier = Modifier
-            .padding(vertical = 20.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         IconButton(
@@ -183,11 +217,7 @@ fun PlayButton(context: Context, navController: NavController, workouts: List<Wo
                     Toast.makeText(context, "No workouts to generate!", Toast.LENGTH_SHORT).show()
                 }
             },
-            modifier = Modifier
-                .size(80.dp)
-                .shadow(10.dp, CircleShape)
-                .background(Brush.radialGradient(listOf(deepPurple, emeraldGreen)), CircleShape)
-                .border(2.dp, Color.White, CircleShape)
+            modifier = Modifier.size(80.dp).shadow(10.dp, CircleShape).background(Brush.radialGradient(listOf(deepPurple, emeraldGreen)), CircleShape).border(2.dp, Color.White, CircleShape)
         ) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,

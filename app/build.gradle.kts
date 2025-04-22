@@ -68,7 +68,8 @@ dependencies {
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("com.google.firebase:firebase-storage-ktx") // FireBase Storage Dependency
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation(libs.firebase.auth.ktx) // FireBase Storage Dependency
 
 
     testImplementation(libs.junit)
