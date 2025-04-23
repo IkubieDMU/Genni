@@ -75,7 +75,7 @@ import kotlin.random.Random
 @Composable
 fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: NavController) {
     val workouts by remember { derivedStateOf { workoutViewModel.workouts } }
-    val context = LocalContext.current.applicationContext
+    val context = LocalContext.current
 
     var showSaveDialog by remember { mutableStateOf(false) }
     var workoutName by remember { mutableStateOf("") }
@@ -83,13 +83,27 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
     if (showSaveDialog) {
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
+            title = { Text("Save Workout") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = workoutName,
+                        onValueChange = { workoutName = it },
+                        label = { Text("Workout Name") }
+                    )
+                }
+            },
             confirmButton = {
                 TextButton(onClick = {
-                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@TextButton
-                    workoutViewModel.saveCurrentWorkout(context,workoutName, userId) { success ->
-                        Toast.makeText(context, if (success) "Workout saved!" else "Failed to save", Toast.LENGTH_SHORT).show()
-                        showSaveDialog = false
-                    }
+                    workoutViewModel.saveCurrentWorkout(
+                        workoutName = workoutName,
+                        context = context,
+                        onSuccess = {
+                            Toast.makeText(context, "Workout saved", Toast.LENGTH_SHORT).show()
+                            showSaveDialog = false
+                        },
+                        onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+                    )
                 }) {
                     Text("Save")
                 }
@@ -98,17 +112,10 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
                 TextButton(onClick = { showSaveDialog = false }) {
                     Text("Cancel")
                 }
-            },
-            title = { Text("Name Your Workout") },
-            text = {
-                OutlinedTextField(
-                    value = workoutName,
-                    onValueChange = { workoutName = it },
-                    label = { Text("Workout Name") }
-                )
             }
         )
     }
+
 
 
     Column(
@@ -141,9 +148,6 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
 
     }
 }
-
-
-
 
 @Composable
 fun WorkoutCard(workout: Workout) {
@@ -219,12 +223,7 @@ fun PlayButton(context: Context, navController: NavController, workouts: List<Wo
             },
             modifier = Modifier.size(80.dp).shadow(10.dp, CircleShape).background(Brush.radialGradient(listOf(deepPurple, emeraldGreen)), CircleShape).border(2.dp, Color.White, CircleShape)
         ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "Start Workout",
-                tint = Color.White,
-                modifier = Modifier.size(40.dp)
-            )
+            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Start Workout", tint = Color.White, modifier = Modifier.size(40.dp))
         }
     }
 }

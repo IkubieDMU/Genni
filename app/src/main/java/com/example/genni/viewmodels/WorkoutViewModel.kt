@@ -3,15 +3,20 @@ package com.example.genni.viewmodels
 import android.content.Context
 import android.content.res.Resources
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.genni.R
+import com.example.genni.models.SavedWorkout
 import com.example.genni.models.Workout
 import com.example.genni.models.WorkoutDTO
 import com.example.genni.states.WorkoutState
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -23,6 +28,13 @@ class WorkoutViewModel : ViewModel() {
 
     private val _workouts = mutableStateListOf<Workout>()
     val workouts: List<Workout> get() = _workouts
+
+    private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
+
+    var currentGeneratedWorkout by mutableStateOf<List<Workout>>(emptyList())
+    var savedWorkouts by mutableStateOf<List<SavedWorkout>>(emptyList())
+        private set
 
     var currentExerciseIndex = mutableStateOf(0)
     var currentSet = mutableStateOf(1)
@@ -175,18 +187,34 @@ class WorkoutViewModel : ViewModel() {
         currentState.value = WorkoutState.Exercise
     }
 
-    val savedWorkouts = mutableStateListOf<Pair<String, List<Workout>>>()
 
-    fun loadSavedWorkouts(userId: String) {
-        val db = FirebaseFirestore.getInstance()
-        db.collection("Users").document(userId).collection("SavedWorkouts")
+    fun loadSavedWorkouts() {
+        val userId = auth.currentUser?.uid ?: return
+
+        db.collection("Users")
+            .document(userId)
+            .collection("SavedWorkouts")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { result ->
-                savedWorkouts.clear()
-                for (doc in result) {
-                    val name = doc.getString("name") ?: "Unnamed"
-                    val exercises = (doc["exercises"] as? List<Map<String, Any>>)?.map { it.toWorkout() } ?: emptyList()
-                    savedWorkouts.add(name to exercises)
+                savedWorkouts = result.documents.mapNotNull { doc ->
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    val timestamp = doc.getLong("timestamp") ?: 0L
+                    val data = doc["workoutData"] as? List<Map<String, Any>> ?: return@mapNotNull null
+                    val workouts = data.map { map ->
+                        Workout(
+                            index = (map["index"] as? Long)?.toInt() ?: 0,
+                            name = map["name"] as String,
+                            sets = (map["sets"] as Long).toInt(),
+                            reps = (map["reps"] as Long).toInt(),
+                            restTime = (map["restTime"] as Long).toInt(),
+                            muscleGroupWorked = map["muscleGroupWorked"] as List<String>,
+                            equipmentUsed = map["equipmentUsed"] as List<String>,
+                            imageResID = getImageResId(map["imageName"] as String)
+                        )
+                    }
+
+                    SavedWorkout(id = doc.id, name = name, timestamp = timestamp, workouts = workouts)
                 }
             }
     }
@@ -205,20 +233,37 @@ class WorkoutViewModel : ViewModel() {
     }
 
 
-    fun saveCurrentWorkout(context: Context, name: String, userId: String, onResult: (Boolean) -> Unit) {
-        val db = FirebaseFirestore.getInstance()
-        val workoutMap = mapOf(
-            "name" to name,
+    fun saveCurrentWorkout(workoutName: String, context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return
+        if (workoutName.isBlank()) {
+            onError("Workout name cannot be empty.")
+            return
+        }
+
+        val workoutData = currentGeneratedWorkout.map { workout ->
+            mapOf(
+                "name" to workout.name,
+                "muscleGroupWorked" to workout.muscleGroupWorked,
+                "equipmentUsed" to workout.equipmentUsed,
+                "sets" to workout.sets,
+                "reps" to workout.reps,
+                "restTime" to workout.restTime,
+                "imageName" to getImageNameFromRes(context, workout.imageResID)
+            )
+        }
+
+        val savedWorkout = mapOf(
+            "name" to workoutName,
             "timestamp" to System.currentTimeMillis(),
-            "exercises" to workouts.map { it.toMap(context) }
+            "workoutData" to workoutData
         )
 
         db.collection("Users")
             .document(userId)
             .collection("SavedWorkouts")
-            .add(workoutMap)
-            .addOnSuccessListener { onResult(true) }
-            .addOnFailureListener { onResult(false) }
+            .add(savedWorkout)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onError(it.message ?: "Failed to save workout") }
     }
 
     fun getImageNameFromRes(context: Context, resId: Int): String {
@@ -232,6 +277,19 @@ class WorkoutViewModel : ViewModel() {
 
     // Helper to serialize
     fun Workout.toMap(context: Context): Map<String, Any> {
+        val imageName = if (imageResID != 0) {
+            try {
+                getImageNameFromRes(context, imageResID)
+            } catch (e: Exception) {
+                Log.e("WorkoutMap", "Invalid imageResID: $imageResID", e)
+                "unknown_image"
+            }
+        } else {
+            "unknown_image"
+        }
+
+        Log.d("WorkoutDebug", "Serializing workout: $name with imageResID: $imageResID")
+
         return mapOf(
             "index" to index,
             "name" to name,
@@ -240,12 +298,27 @@ class WorkoutViewModel : ViewModel() {
             "restTime" to restTime,
             "muscleGroupWorked" to muscleGroupWorked,
             "equipmentUsed" to equipmentUsed,
-            "imageName" to getImageNameFromRes(context, imageResID)
+            "imageName" to imageName
         )
     }
 
     fun setCurrentWorkout(newWorkout: List<Workout>) {
         _workouts.clear()
         _workouts.addAll(newWorkout)
+    }
+
+    fun loadWorkout(savedWorkout: SavedWorkout) {
+        currentGeneratedWorkout = savedWorkout.workouts
+    }
+
+    fun deleteSavedWorkout(docId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return
+        db.collection("Users")
+            .document(userId)
+            .collection("SavedWorkouts")
+            .document(docId)
+            .delete()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onError(it.message ?: "Failed to delete workout") }
     }
 }

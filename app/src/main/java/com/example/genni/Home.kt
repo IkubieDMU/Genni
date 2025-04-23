@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -132,6 +133,7 @@ fun HomeScreen(nc: NavController, homeViewModel: HomeViewModel, authViewModel: A
         "Home" to Screens.HomeScreen.screen,
         "Health Calculations" to Screens.HealthCalculationsScreen.screen,
         "Breathing Exercises" to Screens.BreathingExercisesScreen.screen,
+        "My Saved Workouts" to Screens.SavedWorkoutScreen.screen,
         "Profile" to Screens.ProfileScreen.screen,
         "Settings" to Screens.SettingsScreen.screen,
         "About" to Screens.AboutScreen.screen
@@ -252,6 +254,7 @@ fun DrawerContent(drawerItems: List<Pair<String, String>>, nc: NavController, dr
                                 "Health Calculations" -> Icons.Default.FitnessCenter
                                 "Breathing Exercises" -> Icons.Default.Air
                                 "Profile" -> Icons.Default.Person
+                                "My Saved Workouts" -> Icons.Default.SaveAlt
                                 "Settings" -> Icons.Default.Settings
                                 "About" -> Icons.Default.Info
                                 else -> Icons.Default.Menu

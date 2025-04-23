@@ -86,7 +86,7 @@ fun App() {
             composable(Screens.AdminLoginScreen.screen) { AdminLoginScreen(navigationController, adminViewModel, authViewModel) }
             composable(Screens.AdminSignUpScreen.screen) { AdminSignUpScreen(navigationController,adminViewModel) }
             composable(Screens.HCExplanationScreen.screen) { HealthMetricsExplanationScreen(navigationController) }
-            composable(Screens.SavedWorkoutScreen.screen) { SavedWorkoutsScreen(navigationController,workoutViewModel) }
+            composable(Screens.SavedWorkoutScreen.screen) { SavedWorkoutsScreen(workoutViewModel,navigationController) }
         }
     }
 }
