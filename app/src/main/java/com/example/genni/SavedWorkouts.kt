@@ -57,7 +57,7 @@ fun SavedWorkoutsScreen(viewModel: WorkoutViewModel, navController: NavControlle
                 savedWorkout = savedWorkout,
                 onLoad = {
                     viewModel.loadWorkout(savedWorkout)
-                    navController.navigate("GeneratedWorkoutScreen")
+                    navController.navigate(Screens.SavedWorkoutScreen.screen)
                 },
                 onDelete = {
                     viewModel.deleteSavedWorkout(

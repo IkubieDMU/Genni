@@ -1,6 +1,7 @@
 package com.example.genni
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,11 +31,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -72,54 +77,84 @@ import com.example.genni.viewmodels.WorkoutViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.random.Random
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: NavController) {
     val workouts by remember { derivedStateOf { workoutViewModel.workouts } }
     val context = LocalContext.current
 
-    var showSaveDialog by remember { mutableStateOf(false) }
+    var showSaveBottomSheet by remember { mutableStateOf(false) }
     var workoutName by remember { mutableStateOf("") }
 
-    if (showSaveDialog) {
-        AlertDialog(
-            onDismissRequest = { showSaveDialog = false },
-            title = { Text("Save Workout") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = workoutName,
-                        onValueChange = { workoutName = it },
-                        label = { Text("Workout Name") }
-                    )
-                }
+    // Modal bottom sheet state
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    if (showSaveBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showSaveBottomSheet = false
+                workoutName = ""
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    workoutViewModel.saveCurrentWorkout(
-                        workoutName = workoutName,
-                        context = context,
-                        onSuccess = {
-                            Toast.makeText(context, "Workout saved", Toast.LENGTH_SHORT).show()
-                            showSaveDialog = false
-                        },
-                        onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
-                    )
-                }) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSaveDialog = false }) {
-                    Text("Cancel")
+            sheetState = bottomSheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Save Workout",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                OutlinedTextField(
+                    value = workoutName,
+                    onValueChange = { workoutName = it },
+                    label = { Text("Workout Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = {
+                        showSaveBottomSheet = false
+                        workoutName = ""
+                    }) {
+                        Text("Cancel")
+                    }
+
+                    Button(onClick = {
+                        workoutViewModel.saveCurrentWorkout(
+                            workoutName = workoutName,
+                            context = context,
+                            onSuccess = {
+                                Toast.makeText(context, "Workout saved", Toast.LENGTH_SHORT).show()
+                                showSaveBottomSheet = false
+                                workoutName = ""
+                            },
+                            onError = {
+                                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }) {
+                        Text("Save")
+                    }
                 }
             }
-        )
+        }
     }
 
-
-
     Column(
-        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 24.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender)))
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         Text(
             text = "Generated Workout",
@@ -127,7 +162,9 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
             fontWeight = FontWeight.Bold,
             color = Color.White,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         )
 
         workouts.forEachIndexed { index, workout ->
@@ -138,16 +175,20 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
         Box(modifier = Modifier.fillMaxWidth()) {
             PlayButton(context, navController, workouts)
         }
+
         Button(
-            onClick = { showSaveDialog = true },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(50.dp),
+            onClick = { showSaveBottomSheet = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = deepPurple)
         ) {
             Text("Save This Workout", color = Color.White)
         }
-
     }
 }
+
 
 @Composable
 fun WorkoutCard(workout: Workout) {
