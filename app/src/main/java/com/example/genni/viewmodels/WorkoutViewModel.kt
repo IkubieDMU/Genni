@@ -108,8 +108,9 @@ class WorkoutViewModel : ViewModel() {
             val count = duration / 5
             val selected = filtered.shuffled().take(count)
 
+            val generatedList = mutableListOf<Workout>() // Create a new list
             selected.forEachIndexed { index, workout ->
-                _workouts.add(
+                generatedList.add( // Add to the new list
                     workout.copy(
                         index = index + 1,
                         sets = sets.takeIf { it > 0 } ?: Random.nextInt(3, 5),
@@ -118,6 +119,8 @@ class WorkoutViewModel : ViewModel() {
                     )
                 )
             }
+            _workouts.addAll(generatedList) // Update the _workouts list
+            currentGeneratedWorkout = generatedList // Update currentGeneratedWorkout
         }
     }
 
@@ -234,27 +237,32 @@ class WorkoutViewModel : ViewModel() {
 
 
     fun saveCurrentWorkout(workoutName: String, context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = auth.currentUser?.uid ?: run {
+            onError("You must be signed in to save workouts.")
+            return
+        }
         if (workoutName.isBlank()) {
             onError("Workout name cannot be empty.")
             return
         }
 
-        val workoutData = currentGeneratedWorkout.map { workout ->
+        // Use your actual generated list, not some other var that never gets set
+        val workoutData = _workouts.map { workout ->
             mapOf(
-                "name" to workout.name,
-                "muscleGroupWorked" to workout.muscleGroupWorked,
-                "equipmentUsed" to workout.equipmentUsed,
-                "sets" to workout.sets,
-                "reps" to workout.reps,
-                "restTime" to workout.restTime,
-                "imageName" to getImageNameFromRes(context, workout.imageResID)
+                "index"              to workout.index,
+                "name"               to workout.name,
+                "muscleGroupWorked"  to workout.muscleGroupWorked,
+                "equipmentUsed"      to workout.equipmentUsed,
+                "sets"               to workout.sets,
+                "reps"               to workout.reps,
+                "restTime"           to workout.restTime,
+                "imageName"          to getImageNameFromRes(context, workout.imageResID)
             )
         }
 
         val savedWorkout = mapOf(
-            "name" to workoutName,
-            "timestamp" to System.currentTimeMillis(),
+            "name"        to workoutName,
+            "timestamp"   to System.currentTimeMillis(),
             "workoutData" to workoutData
         )
 
@@ -262,14 +270,23 @@ class WorkoutViewModel : ViewModel() {
             .document(userId)
             .collection("SavedWorkouts")
             .add(savedWorkout)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onError(it.message ?: "Failed to save workout") }
+            .addOnSuccessListener {
+                onSuccess()
+                loadSavedWorkouts()            // ← immediately refresh your savedWorkouts list
+            }
+            .addOnFailureListener { e -> onError(e.message ?: "Failed to save workout") }
     }
 
+
+
+    // Helper function to get the string name of a resource ID.
     fun getImageNameFromRes(context: Context, resId: Int): String {
         return try {
+            // Attempt to retrieve the entry name (which is the file name without the extension)
+            // of the resource ID from the application's resources.
             context.resources.getResourceEntryName(resId)
         } catch (e: Resources.NotFoundException) {
+            // If the resource ID is not found, return a default string "unknown_image".
             "unknown_image"
         }
     }

@@ -208,11 +208,7 @@ fun HomeScreen(nc: NavController, homeViewModel: HomeViewModel, authViewModel: A
 fun DrawerContent(drawerItems: List<Pair<String, String>>, nc: NavController, drawerState: DrawerState, scope: CoroutineScope, authViewModel: AuthViewModel) {
     // Smooth gradient background with a floating effect
     Box(
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(250.dp)
-            .background(Brush.verticalGradient(listOf(deepPurple, emeraldGreen)))
-            .shadow(10.dp, RoundedCornerShape(topEnd = 30.dp, bottomEnd = 30.dp))
+        modifier = Modifier.fillMaxHeight().width(250.dp).background(Brush.verticalGradient(listOf(deepPurple, emeraldGreen))).shadow(10.dp, RoundedCornerShape(topEnd = 30.dp, bottomEnd = 30.dp))
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             val currentUser by authViewModel.currentUser.collectAsState()
