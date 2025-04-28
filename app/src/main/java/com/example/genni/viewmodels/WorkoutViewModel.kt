@@ -190,37 +190,77 @@ class WorkoutViewModel : ViewModel() {
         currentState.value = WorkoutState.Exercise
     }
 
+    // Save the current generated workout list as a SavedWorkout under root "SavedWorkouts"
+    fun saveCurrentWorkout(workoutName: String, userId: String, context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (workoutName.isBlank()) {
+            onError("Workout name cannot be empty.")
+            return
+        }
 
-    fun loadSavedWorkouts() {
-        val userId = auth.currentUser?.uid ?: return
+        val workoutsToSave = currentGeneratedWorkout
+        if (workoutsToSave.isEmpty()) {
+            onError("No generated workout to save.")
+            return
+        }
+
+        val timestamp = System.currentTimeMillis()
+        val workoutData = workoutsToSave.map { it.toMap() }
+
+        val doc = mapOf(
+            "name" to workoutName,
+            "timestamp" to timestamp,
+            "workouts" to workoutData
+        )
+
+        val formattedWorkoutName = workoutName.trim().replace(Regex("[^A-Za-z0-9]"), "_").lowercase()
+
+        if (userId.isNotBlank()) {
+            db.collection("Users")
+                .document(userId)
+                .collection("SavedWorkouts")
+                .document(formattedWorkoutName)
+                .set(doc)
+                .addOnSuccessListener {
+                    val saved = SavedWorkout(id = formattedWorkoutName, name = workoutName, timestamp = timestamp, workouts = workoutsToSave)
+                    savedWorkouts = listOf(saved) + savedWorkouts
+                    onSuccess()
+                }
+                .addOnFailureListener { e ->
+                    onError(e.message ?: "Failed to save workout")
+                }
+        } else {
+            onError("User ID is missing")
+        }
+    }
+
+
+    fun loadSavedWorkouts(userId: String, onError: (String) -> Unit = {}) {
+        if (userId.isBlank()) {
+            onError("User ID is missing")
+            return
+        }
 
         db.collection("Users")
             .document(userId)
             .collection("SavedWorkouts")
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
-            .addOnSuccessListener { result ->
-                savedWorkouts = result.documents.mapNotNull { doc ->
-                    val name = doc.getString("name") ?: return@mapNotNull null
-                    val timestamp = doc.getLong("timestamp") ?: 0L
-                    val data = doc["workoutData"] as? List<Map<String, Any>> ?: return@mapNotNull null
-                    val workouts = data.map { map ->
-                        Workout(
-                            index = (map["index"] as? Long)?.toInt() ?: 0,
-                            name = map["name"] as String,
-                            sets = (map["sets"] as Long).toInt(),
-                            reps = (map["reps"] as Long).toInt(),
-                            restTime = (map["restTime"] as Long).toInt(),
-                            muscleGroupWorked = map["muscleGroupWorked"] as List<String>,
-                            equipmentUsed = map["equipmentUsed"] as List<String>,
-                            imageResID = getImageResId(map["imageName"] as String)
-                        )
-                    }
-
-                    SavedWorkout(id = doc.id, name = name, timestamp = timestamp, workouts = workouts)
+            .addOnSuccessListener { snap ->
+                val list = snap.documents.mapNotNull { doc ->
+                    val name      = doc.getString("name") ?: return@mapNotNull null
+                    val ts        = doc.getLong("timestamp") ?: 0L
+                    val rawList   = doc.get("workouts") as? List<Map<String, Any>> ?: return@mapNotNull null
+                    val workouts  = rawList.map { map -> map.toWorkout() }
+                    SavedWorkout(id = doc.id, name = name, timestamp = ts, workouts = workouts)
                 }
+                savedWorkouts = list
+            }
+            .addOnFailureListener { e ->
+                onError(e.message ?: "Failed to load saved workouts")
             }
     }
+
+
 
     fun Map<String, Any>.toWorkout(): Workout {
         return Workout(
@@ -234,50 +274,6 @@ class WorkoutViewModel : ViewModel() {
             imageResID = getImageResId(this["imageName"] as String)
         )
     }
-
-
-    fun saveCurrentWorkout(workoutName: String, context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val userId = auth.currentUser?.uid ?: run {
-            onError("You must be signed in to save workouts.")
-            return
-        }
-        if (workoutName.isBlank()) {
-            onError("Workout name cannot be empty.")
-            return
-        }
-
-        // Use your actual generated list, not some other var that never gets set
-        val workoutData = _workouts.map { workout ->
-            mapOf(
-                "index"              to workout.index,
-                "name"               to workout.name,
-                "muscleGroupWorked"  to workout.muscleGroupWorked,
-                "equipmentUsed"      to workout.equipmentUsed,
-                "sets"               to workout.sets,
-                "reps"               to workout.reps,
-                "restTime"           to workout.restTime,
-                "imageName"          to getImageNameFromRes(context, workout.imageResID)
-            )
-        }
-
-        val savedWorkout = mapOf(
-            "name"        to workoutName,
-            "timestamp"   to System.currentTimeMillis(),
-            "workoutData" to workoutData
-        )
-
-        db.collection("Users")
-            .document(userId)
-            .collection("SavedWorkouts")
-            .add(savedWorkout)
-            .addOnSuccessListener {
-                onSuccess()
-                loadSavedWorkouts()            // ← immediately refresh your savedWorkouts list
-            }
-            .addOnFailureListener { e -> onError(e.message ?: "Failed to save workout") }
-    }
-
-
 
     // Helper function to get the string name of a resource ID.
     fun getImageNameFromRes(context: Context, resId: Int): String {
@@ -293,31 +289,17 @@ class WorkoutViewModel : ViewModel() {
 
 
     // Helper to serialize
-    fun Workout.toMap(context: Context): Map<String, Any> {
-        val imageName = if (imageResID != 0) {
-            try {
-                getImageNameFromRes(context, imageResID)
-            } catch (e: Exception) {
-                Log.e("WorkoutMap", "Invalid imageResID: $imageResID", e)
-                "unknown_image"
-            }
-        } else {
-            "unknown_image"
-        }
-
-        Log.d("WorkoutDebug", "Serializing workout: $name with imageResID: $imageResID")
-
-        return mapOf(
-            "index" to index,
-            "name" to name,
-            "sets" to sets,
-            "reps" to reps,
-            "restTime" to restTime,
-            "muscleGroupWorked" to muscleGroupWorked,
-            "equipmentUsed" to equipmentUsed,
-            "imageName" to imageName
-        )
-    }
+    fun Workout.toMap(): Map<String,Any> = mapOf(
+        "index"              to index,
+        "name"               to name,
+        "sets"               to sets,
+        "reps"               to reps,
+        "restTime"           to restTime,
+        "muscleGroupWorked"  to muscleGroupWorked,
+        "equipmentUsed"      to equipmentUsed,
+        // if you want to reconstruct images later, store the original imageName instead of ID
+        //"imageName"          to "" /* you’ll need a reverse lookup here, or omit entirely */
+    )
 
     fun setCurrentWorkout(newWorkout: List<Workout>) {
         _workouts.clear()
@@ -328,14 +310,19 @@ class WorkoutViewModel : ViewModel() {
         currentGeneratedWorkout = savedWorkout.workouts
     }
 
-    fun deleteSavedWorkout(docId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
+    fun deleteSavedWorkout(workoutId: String, userId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (userId.isBlank()) {
+            onError("User ID is missing")
+            return
+        }
+
         db.collection("Users")
             .document(userId)
             .collection("SavedWorkouts")
-            .document(docId)
+            .document(workoutId)
             .delete()
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onError(it.message ?: "Failed to delete workout") }
+            .addOnFailureListener { e -> onError(e.message ?: "Failed to delete workout") }
     }
+
 }

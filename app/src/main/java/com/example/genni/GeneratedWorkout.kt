@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,15 +74,18 @@ import com.example.genni.ui.theme.emeraldGreen
 import com.example.genni.ui.theme.royalPurple
 import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
+import com.example.genni.viewmodels.AuthViewModel
 import com.example.genni.viewmodels.WorkoutViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: NavController) {
+fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, authViewModel: AuthViewModel, navController: NavController) {
+
     val workouts by remember { derivedStateOf { workoutViewModel.workouts } }
     val context = LocalContext.current
+    val currentUser = authViewModel.currentUser.collectAsState().value
 
     var showSaveBottomSheet by remember { mutableStateOf(false) }
     var workoutName by remember { mutableStateOf("") }
@@ -97,30 +101,14 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
             },
             sheetState = bottomSheetState
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Save Workout",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Text(text = "Save Workout", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 16.dp))
 
-                OutlinedTextField(
-                    value = workoutName,
-                    onValueChange = { workoutName = it },
-                    label = { Text("Workout Name") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(workoutName, { workoutName = it }, label = { Text("Workout Name") }, modifier = Modifier.fillMaxWidth())
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     TextButton(onClick = {
                         showSaveBottomSheet = false
                         workoutName = ""
@@ -129,18 +117,24 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
                     }
 
                     Button(onClick = {
-                        workoutViewModel.saveCurrentWorkout(
-                            workoutName = workoutName,
-                            context = context,
-                            onSuccess = {
-                                Toast.makeText(context, "Workout saved", Toast.LENGTH_SHORT).show()
-                                showSaveBottomSheet = false
-                                workoutName = ""
-                            },
-                            onError = {
-                                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                            }
-                        )
+                        val userId = authViewModel.currentUser.value?.username.orEmpty() // Document ID is username of the logged in user
+                        if (userId.isNotBlank()) {
+                            workoutViewModel.saveCurrentWorkout(
+                                workoutName = workoutName,
+                                userId = userId,
+                                context = context,
+                                onSuccess = {
+                                    Toast.makeText(context, "Workout saved", Toast.LENGTH_SHORT).show()
+                                    showSaveBottomSheet = false
+                                    workoutName = ""
+                                },
+                                onError = { err ->
+                                    Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        } else {
+                            Toast.makeText(context, "User ID missing", Toast.LENGTH_SHORT).show()
+                        }
                     }) {
                         Text("Save")
                     }
@@ -162,9 +156,7 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
             fontWeight = FontWeight.Bold,
             color = Color.White,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
 
         workouts.forEachIndexed { index, workout ->
@@ -178,10 +170,7 @@ fun GeneratedWorkoutScreen(workoutViewModel: WorkoutViewModel, navController: Na
 
         Button(
             onClick = { showSaveBottomSheet = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-                .height(50.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = deepPurple)
         ) {
             Text("Save This Workout", color = Color.White)
@@ -273,5 +262,5 @@ fun PlayButton(context: Context, navController: NavController, workouts: List<Wo
 @Composable
 fun GeneratedWorkoutScreenPreview() {
     val nc = rememberNavController()
-    GenniTheme { GeneratedWorkoutScreen(WorkoutViewModel(),nc) }
+    GenniTheme { GeneratedWorkoutScreen(WorkoutViewModel(), AuthViewModel(),nc) }
 }

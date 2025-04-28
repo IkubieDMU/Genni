@@ -1,5 +1,6 @@
 package com.example.genni
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +40,7 @@ import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import androidx.navigation.NavController
 import com.example.genni.models.SavedWorkout
+import com.example.genni.viewmodels.AuthViewModel
 import com.example.genni.viewmodels.WorkoutViewModel
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
@@ -44,27 +49,43 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SavedWorkoutsScreen(viewModel: WorkoutViewModel, navController: NavController) {
+fun SavedWorkoutsScreen(viewModel: WorkoutViewModel, authViewModel: AuthViewModel, navController: NavController) {
     val savedWorkouts = viewModel.savedWorkouts
+    val context = LocalContext.current
+    val user by authViewModel.currentUser.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadSavedWorkouts()
+    user?.let {
+        viewModel.loadSavedWorkouts(
+            userId = it.username,
+            onError = { err ->
+                Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 
     LazyColumn {
-        items(savedWorkouts) { savedWorkout ->
+        items(savedWorkouts) { item ->
             SavedWorkoutItem(
-                savedWorkout = savedWorkout,
+                savedWorkout = item,
                 onLoad = {
-                    viewModel.loadWorkout(savedWorkout)
+                    viewModel.loadWorkout(item)
                     navController.navigate(Screens.SavedWorkoutScreen.screen)
+                    Toast.makeText(context, "Loaded ${item.name}", Toast.LENGTH_SHORT).show()
                 },
                 onDelete = {
-                    viewModel.deleteSavedWorkout(
-                        docId = savedWorkout.id,
-                        onSuccess = { /* You can show a toast/snackbar */ },
-                        onError = { /* Handle error if needed */ }
-                    )
+                    user?.let { currentUser ->
+                        viewModel.deleteSavedWorkout(
+                            workoutId = item.id,
+                            userId = currentUser.username,
+                            onSuccess = {
+                                Toast.makeText(context, "Deleted ${item.name}", Toast.LENGTH_SHORT).show()
+                                viewModel.loadSavedWorkouts(userId = currentUser.username)
+                            },
+                            onError = { error ->
+                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
                 }
             )
         }
