@@ -1,24 +1,19 @@
 package com.example.genni
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.genni.ui.theme.GenniTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.genni.adminScreens.AdminHomeScreen
 import com.example.genni.adminScreens.AdminLoginScreen
 import com.example.genni.adminScreens.AdminSignUpScreen
@@ -54,6 +49,7 @@ fun App() {
     val appSettingsViewModel = remember { AppSettingsViewModel() }
     val adminViewModel = remember { AdminViewModel() }
     val homeViewModel = remember { HomeViewModel() }
+    val hcViewModel = remember { HCViewModel() }
 
     val isDarkTheme = appSettingsViewModel.isDarkTheme
 
@@ -69,12 +65,13 @@ fun App() {
                     viewModel = workoutViewModel, onWorkoutCompleted = { navigationController.popBackStack() }
                 )
             }
-            composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(navigationController,HCViewModel(),authViewModel) }
+            composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(navigationController,hcViewModel,authViewModel) }
             composable(Screens.BreathingExercisesScreen.screen) { BreathingExercisesScreen(navigationController, BEViewModel()) }
             composable(Screens.BreathingExercisesSimulatorScreen.screen) { BESimulatorScreen(BEViewModel()) { } }
             composable(Screens.SettingsScreen.screen) { SettingsScreen(navigationController, authViewModel, appSettingsViewModel) }
             composable(Screens.AboutScreen.screen) { AboutScreen() }
             composable(Screens.ProfileScreen.screen) { ProfileScreen(authViewModel) }
+            composable(Screens.FoodRecommScreen.screen) { FoodRecommScreen(navigationController,hcViewModel,authViewModel) }
 
             // Admin's Composables
             composable(Screens.AdminHomeScreen.screen) { AdminHomeScreen() }
