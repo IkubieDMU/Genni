@@ -67,9 +67,7 @@ class WorkoutViewModel : ViewModel() {
                     )
                 }
             }
-            .addOnFailureListener { exception ->
-                Log.e("Firestore", "Failed to fetch workouts", exception)
-            }
+            .addOnFailureListener { exception -> Log.e("Firestore", "Failed to fetch workouts", exception) }
     }
 
     private fun getImageResId(imageName: String): Int {
@@ -89,14 +87,24 @@ class WorkoutViewModel : ViewModel() {
         }
     }
 
+    // Filters the list of all workouts based on selected muscle groups and equipment
     private fun filterExercisesBy(muscles: List<String>, equipment: List<String>): List<Workout> {
         return _allWorkouts.filter { workout ->
+            // Check if the workout targets at least one of the selected muscle groups (case-insensitive)
             val matchMuscle = workout.muscleGroupWorked.any { it.trim().equalsAnyIgnoreCase(muscles) }
+
+            // Check if the workout uses at least one of the selected equipment (or allow all if none selected)
             val matchEquip = equipment.isEmpty() || workout.equipmentUsed.any { it.trim().equalsAnyIgnoreCase(equipment) }
+
+            // Include the workout only if both muscle and equipment match the criteria
             matchMuscle && matchEquip
-        }.ifEmpty { _allWorkouts.shuffled() }
+        }.ifEmpty {
+            // If no workouts match, return a randomized list of all workouts as fallback
+            _allWorkouts.shuffled()
+        }
     }
 
+    // Extension function to check if a string equals any item in a list (case-insensitive comparison)
     private fun String.equalsAnyIgnoreCase(list: List<String>): Boolean {
         return list.any { it.equals(this, ignoreCase = true) }
     }

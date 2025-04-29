@@ -6,16 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,19 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.genni.ui.theme.GenniTheme
 import com.example.genni.ui.theme.deepPurple
-import com.example.genni.ui.theme.emeraldGreen
-import com.example.genni.ui.theme.mintGreen
-import com.example.genni.ui.theme.softLavender
 import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.HCViewModel
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Height
 import androidx.compose.material3.*
-import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.genni.viewmodels.AuthViewModel
@@ -136,22 +121,17 @@ fun HealthCalculationsScreen(nc: NavController, hcViewModel: HCViewModel, authVi
 
 
         TextButton(onClick = {
-            nc.currentBackStackEntry?.savedStateHandle?.apply {
-                set("bmi", bmi)
-                set("bmr", bmr)
-                set("bfp", bfp)
-                set("tdee", tdee)
-                set("proteinIntake", proteinIntake)
-                set("waterIntake", waterIntake)
-            } // Pass the calculated results to the new screen
-            nc.navigate(Screens.HCExplanationScreen.screen) // Redirect to the explanation screen
+            nc.navigate(Screens.HCExplanationScreen.screen)
         }) {
-            Text(
-                text = "What do these results mean?",
-                color = Color.Cyan,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Text(text = "What do these results mean?", color = Color.Cyan, style = MaterialTheme.typography.bodyLarge)
         }
+
+        TextButton(onClick = {
+            nc.navigate(Screens.FoodRecommScreen.screen)
+        }) {
+            Text(text = "Would you like some food recommendations", color = Color.Cyan, style = MaterialTheme.typography.bodyLarge)
+        }
+
 
     }
 }

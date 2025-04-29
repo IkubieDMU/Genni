@@ -81,9 +81,7 @@ fun SavedWorkoutsScreen(viewModel: WorkoutViewModel, authViewModel: AuthViewMode
                                 Toast.makeText(context, "Deleted ${item.name}", Toast.LENGTH_SHORT).show()
                                 viewModel.loadSavedWorkouts(userId = currentUser.username)
                             },
-                            onError = { error ->
-                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                            }
+                            onError = { error -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show() } // Display error toast
                         )
                     }
                 }
