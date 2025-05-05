@@ -113,8 +113,8 @@ fun HomeScreen(nc: NavController, homeViewModel: HomeViewModel, authViewModel: A
                     homeViewModel.setMuscleGroups(selected)
                     showSheet = false
                 }
-                "Sets & Reps" -> SetsRepsInput { sets, reps ->
-                    homeViewModel.setSetsAndReps(sets, reps)
+                "Sets & Reps" -> SetsRepsInput { sets, reps, restTimePerExercise, restTimePerSet ->
+                    homeViewModel.setSetsAndReps(sets, reps, restTimePerExercise, restTimePerSet)
                     showSheet = false
                 }
                 "Equipment" -> EquipmentSelector { selected ->
@@ -347,7 +347,7 @@ fun MuscleGroupSelector(onConfirm: (List<String>) -> Unit) {
 }
 
 @Composable
-fun SetsRepsInput(onConfirm: (Int, Int) -> Unit) {
+fun SetsRepsInput(onConfirm: (Int, Int, Int, Int) -> Unit) {
     // State to track selected goal (Hypertrophy, Strength, Endurance)
     var selectedGoal by remember { mutableStateOf<String?>(null) }
 
@@ -369,6 +369,10 @@ fun SetsRepsInput(onConfirm: (Int, Int) -> Unit) {
     // Flags to check which input method is being used
     val usingManualInput = manualSets.isNotBlank() || manualReps.isNotBlank()
     val usingGoalSelection = selectedGoal != null
+
+    // States for rest time sliders
+    var restTimePerExercise by remember { mutableStateOf(60) } // in seconds
+    var restTimePerSet by remember { mutableStateOf(30) } // in seconds
 
     Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
         Text("Choose One Method", fontWeight = FontWeight.Bold, fontSize = 18.sp)
@@ -439,6 +443,29 @@ fun SetsRepsInput(onConfirm: (Int, Int) -> Unit) {
             enabled = !usingGoalSelection
         )
 
+        // =============== REST TIME SLIDERS ===============
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Rest Time per Exercise (Seconds): $restTimePerExercise", fontWeight = FontWeight.SemiBold)
+        Slider(
+            value = restTimePerExercise.toFloat(),
+            onValueChange = { restTimePerExercise = it.toInt() },
+            valueRange = 30f..180f,
+            steps = 15,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Rest Time per Set (Seconds): $restTimePerSet", fontWeight = FontWeight.SemiBold)
+        Slider(
+            value = restTimePerSet.toFloat(),
+            onValueChange = { restTimePerSet = it.toInt() },
+            valueRange = 10f..120f,
+            steps = 10,
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.height(20.dp))
 
         // =============== CONFIRM BUTTON ===============
@@ -458,8 +485,8 @@ fun SetsRepsInput(onConfirm: (Int, Int) -> Unit) {
                     reps = manualReps.toIntOrNull() ?: 10
                 }
 
-                // Send sets and reps to the parent composable
-                onConfirm(sets, reps)
+                // Send sets, reps, rest times to the parent composable
+                onConfirm(sets, reps, restTimePerExercise, restTimePerSet)
             },
             modifier = Modifier.align(Alignment.End),
             enabled = (usingGoalSelection && minSets.isNotBlank() && maxSets.isNotBlank()) ||
@@ -479,9 +506,39 @@ fun EquipmentSelector(onConfirm: (List<String>) -> Unit) {
     )
     val selected = remember { mutableStateListOf<String>() }
 
+    // Check if all items are selected
+    val allSelected = selected.size == equipmentOptions.size
+
     Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
         Text("Select Equipment", fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
+        // Select All Checkbox
+        Row(
+            Modifier.fillMaxWidth().clickable {
+                if (allSelected) {
+                    selected.clear()
+                } else {
+                    selected.clear()
+                    selected.addAll(equipmentOptions)
+                }
+            }.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = allSelected,
+                onCheckedChange = {
+                    if (it) {
+                        selected.clear()
+                        selected.addAll(equipmentOptions)
+                    } else {
+                        selected.clear()
+                    }
+                }
+            )
+            Text("Select All", Modifier.padding(start = 8.dp))
+        }
+
+        // Individual checkboxes
         equipmentOptions.forEach { item ->
             Row(
                 Modifier.fillMaxWidth().clickable {
@@ -501,6 +558,7 @@ fun EquipmentSelector(onConfirm: (List<String>) -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun DurationSelector(onConfirm: (Int) -> Unit) {

@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,28 +43,40 @@ import com.example.genni.viewmodels.ForgetPasswordViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForgotPasswordScreen(nc: NavController, viewModel: ForgetPasswordViewModel) {
+fun ForgotPasswordScreen(nc: NavController, fpViewModel: ForgetPasswordViewModel) {
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by fpViewModel.uiState.collectAsState()
+    val navigateToResetPage by fpViewModel.navigateToResetPage.collectAsState()
 
     Box(
         modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, softLavender))),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Forgot Password?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
+        Column(modifier = Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            MyCustomTF(viewModel.email, { viewModel.onEmailChange(it) }, "Email", Icons.Default.Email, "Email Icon")
+            Text("Forgot Password?", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = white)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            MyCustomTF(fpViewModel.email, { fpViewModel.onEmailChange(it) }, "Email", Icons.Default.Email, "Email Icon", uiState is ResetState.Error)
+
+            if (uiState is ResetState.Error) {
+                Text(
+                    text = (uiState as ResetState.Error).message,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                )
+            }
+
+
             Spacer(modifier = Modifier.height(20.dp))
 
             // Reset Password Button
             Button(
-                onClick = { viewModel.resetPassword() },
+                onClick = { fpViewModel.resetPassword() },
                 colors = ButtonDefaults.buttonColors(containerColor = emeraldGreen),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -82,6 +95,14 @@ fun ForgotPasswordScreen(nc: NavController, viewModel: ForgetPasswordViewModel) 
                 nc.navigate(Screens.LoginScreen.screen)
             }
 
+            LaunchedEffect(navigateToResetPage) {
+                if (navigateToResetPage) {
+                    fpViewModel.onNavigateHandled()
+                    nc.navigate(Screens.FPContdScreen.screen)
+                }
+            }
+
+
             LaunchedEffect(uiState) {
                 when (uiState) {
                     is ResetState.Success -> {
@@ -96,7 +117,6 @@ fun ForgotPasswordScreen(nc: NavController, viewModel: ForgetPasswordViewModel) 
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

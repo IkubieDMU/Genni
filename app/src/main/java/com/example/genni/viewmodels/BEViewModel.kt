@@ -13,82 +13,101 @@ import kotlin.random.Random
 
 class BEViewModel : ViewModel() {
 
-    // MutableStateFlow for breathing exercises
     private val _breathingExercises = MutableStateFlow<List<BreathingExercise>>(emptyList())
     val breathingExercises: StateFlow<List<BreathingExercise>> = _breathingExercises
 
-    // Holds the index of the current breathing exercise
     private val _currentExerciseIndex = MutableStateFlow(0)
     val currentExerciseIndex: StateFlow<Int> = _currentExerciseIndex
 
-    // Timer for each breathing phase (inhale, hold, exhale)
     private val _timeLeft = MutableStateFlow(0)
     val timeLeft: StateFlow<Int> = _timeLeft
 
+    private val _currentPhase = MutableStateFlow(BreathingPhase.INHALE)
+    val currentPhase: StateFlow<BreathingPhase> = _currentPhase
+
+    private val _isPaused = MutableStateFlow(false)
+    val isPaused: StateFlow<Boolean> = _isPaused
+
     private var isRunning = false
 
-    init {
-        generateBreathingExercises()
-    }
+    enum class BreathingPhase { INHALE, HOLD, EXHALE }
 
-    /**
-     * Generates a random list of breathing exercises for a 5-10 minute session
-     */
-    fun generateBreathingExercises() {
+    fun generateBreathingExercises(durationMinutes: Int = 5) {
         val exercises = mutableListOf<BreathingExercise>()
-        val totalDuration = (5..10).random() * 60 // Total time in seconds (5 to 10 minutes)
+        val totalDuration = durationMinutes * 60
         var accumulatedTime = 0
 
         while (accumulatedTime < totalDuration) {
-            val inhaleTime = (3..5).random()
-            val holdTime = (2..4).random()
-            val exhaleTime = (4..6).random()
-            accumulatedTime += inhaleTime + holdTime + exhaleTime
+            val inhale = (3..5).random()
+            val hold = (2..4).random()
+            val exhale = (4..6).random()
+            val total = inhale + hold + exhale
 
-            val exercise = BreathingExercise(inhaleTime, holdTime, exhaleTime)
-            exercises.add(exercise)
+            if (accumulatedTime + total > totalDuration) break
+
+            exercises.add(BreathingExercise(inhale, hold, exhale))
+            accumulatedTime += total
         }
+
         _breathingExercises.value = exercises
+        _currentExerciseIndex.value = 0
+        _currentPhase.value = BreathingPhase.INHALE
+        _timeLeft.value = 0
+        isRunning = false
+        _isPaused.value = false
     }
 
-    /**
-     * Starts or resumes the breathing session
-     */
     fun startBreathingSession(onFinished: () -> Unit) {
         if (isRunning) return
         isRunning = true
 
         viewModelScope.launch {
-            val currentExercise = _breathingExercises.value.getOrNull(_currentExerciseIndex.value)
-            if (currentExercise != null) {
-                startPhase(currentExercise.inhaleTime)
-                startPhase(currentExercise.holdTime)
-                startPhase(currentExercise.exhaleTime)
+            runCurrentExercise(onFinished)
+        }
+    }
 
-                _currentExerciseIndex.value++
-                if (_currentExerciseIndex.value >= _breathingExercises.value.size) {
-                    onFinished()
-                } else {
-                    isRunning = false
+    private suspend fun runCurrentExercise(onFinished: () -> Unit) {
+        val current = breathingExercises.value.getOrNull(currentExerciseIndex.value)
+        if (current == null) {
+            onFinished()
+            return
+        }
+
+        val phases = listOf(
+            BreathingPhase.INHALE to current.inhaleTime,
+            BreathingPhase.HOLD to current.holdTime,
+            BreathingPhase.EXHALE to current.exhaleTime
+        )
+
+        for ((phase, time) in phases) {
+            _currentPhase.value = phase
+            _timeLeft.value = time
+
+            while (_timeLeft.value > 0) {
+                if (_isPaused.value) {
+                    delay(200) // Wait while paused
+                    continue
                 }
+                delay(1000)
+                _timeLeft.value -= 1
             }
         }
-    }
 
-    private suspend fun startPhase(phaseTime: Int) {
-        _timeLeft.value = phaseTime
-        while (_timeLeft.value > 0) {
-            delay(1000)
-            _timeLeft.value -= 1
+        _currentExerciseIndex.value += 1
+        isRunning = false
+
+        if (_currentExerciseIndex.value >= breathingExercises.value.size) {
+            onFinished()
+        } else {
+            startBreathingSession(onFinished)
         }
     }
 
-    /**
-     * Skips the current exercise
-     */
-    fun skipExercise() {
-        if (_currentExerciseIndex.value < _breathingExercises.value.size - 1) {
-            _currentExerciseIndex.value++
-        }
+    fun pause() {
+        _isPaused.value = true
+    }
+
+    fun resume() {
+        _isPaused.value = false
     }
 }

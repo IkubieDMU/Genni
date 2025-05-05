@@ -66,6 +66,18 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
     var height by remember { mutableStateOf("") }
     var profilePicUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Error states
+    var firstNameError by remember { mutableStateOf<String?>(null) }
+    var middleNameError by remember { mutableStateOf<String?>(null) }
+    var lastNameError by remember { mutableStateOf<String?>(null) }
+    var ageError by remember { mutableStateOf<String?>(null) }
+    var yearsOfTrainingError by remember { mutableStateOf<String?>(null) }
+    var usernameError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var heightError by remember { mutableStateOf<String?>(null) }
+    var weightError by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -83,17 +95,20 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         }
     }
 
-    // ✅ Goals selection state
     val goalOptions = listOf("Build Muscle", "Burn Fat", "Improve Cardio")
     val selectedGoals = remember { mutableStateMapOf<String, Boolean>() }
-    goalOptions.forEach { goal ->
-        if (selectedGoals[goal] == null) selectedGoals[goal] = false
+    goalOptions.forEach { goal -> if (selectedGoals[goal] == null) selectedGoals[goal] = false }
+
+    fun isValidCredential(value: String): Boolean {
+        val hasUpper = value.any { it.isUpperCase() }
+        val hasSymbol = value.any { !it.isLetterOrDigit() }
+        return value.length >= 8 && hasUpper && hasSymbol
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple)))
+            .background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple)))
             .verticalScroll(scrollState)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -101,15 +116,48 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         Text("Create a new Genni Account", fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = white)
         Spacer(modifier = Modifier.height(10.dp))
 
-        MyCustomTF(firstName, { firstName = it }, "First Name", Icons.Default.Person, "First Name Icon")
-        Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(middleName, { middleName = it }, "Middle Name (Optional)", Icons.Default.Person, "Middle Name Icon")
-        Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(lastName, { lastName = it }, "Last Name", Icons.Default.Person, "Last Name Icon")
-        Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(age, { age = it }, "Age", Icons.Default.DateRange, "Age Icon")
+        // First Name
+        MyCustomTF(firstName, {
+            firstName = it
+            firstNameError = if (it.length > 20) "Max 20 characters" else null
+        }, "First Name", Icons.Default.Person, "First Name Icon", isError = firstNameError != null)
+        firstNameError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
         Spacer(modifier = Modifier.height(10.dp))
 
+        // Middle Name
+        MyCustomTF(middleName, {
+            middleName = it
+            middleNameError = if (it.length > 20) "Max 20 characters" else null
+        }, "Middle Name (Optional)", Icons.Default.Person, "Middle Name Icon", isError = middleNameError != null)
+        middleNameError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Last Name
+        MyCustomTF(lastName, {
+            lastName = it
+            lastNameError = if (it.length > 20) "Max 20 characters" else null
+        }, "Last Name", Icons.Default.Person, "Last Name Icon", isError = lastNameError != null)
+        lastNameError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Age
+        MyCustomTF(age, {
+            age = it
+            val ageNum = it.toIntOrNull()
+            ageError = when {
+                ageNum == null -> "Enter a valid number"
+                ageNum !in 6..105 -> "Age must be between 6 and 105"
+                else -> null
+            }
+        }, "Age", Icons.Default.DateRange, "Age Icon", isError = ageError != null)
+        ageError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Gender dropdown
         var genderExpanded by remember { mutableStateOf(false) }
         val genderOptions = listOf("M", "F")
 
@@ -144,7 +192,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
             ) {
                 genderOptions.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(selectionOption,color = mintGreen, style = MaterialTheme.typography.bodyMedium) },
+                        text = { Text(selectionOption, color = mintGreen) },
                         onClick = {
                             gender = selectionOption
                             genderExpanded = false
@@ -157,7 +205,7 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // ✅ Goals Checkboxes UI
+        // Goals Checkboxes
         Text("Select Your Goals", fontSize = 18.sp, color = white, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(8.dp))
         goalOptions.forEach { goal ->
@@ -175,17 +223,74 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(yearsOfTraining, { yearsOfTraining = it }, "Years of Training", Icons.Default.FitnessCenter, "Training Icon")
+
+        // Years of Training
+        MyCustomTF(yearsOfTraining, {
+            yearsOfTraining = it
+            val yot = it.toIntOrNull()
+            yearsOfTrainingError = when {
+                yot == null -> "Enter a valid number"
+                yot !in 0..80 -> "Must be between 0 and 80"
+                else -> null
+            }
+        }, "Years of Training", Icons.Default.FitnessCenter, "Training Icon", isError = yearsOfTrainingError != null)
+        yearsOfTrainingError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
         Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(username, { username = it }, "Username", Icons.Default.Person, "Username Icon")
+
+        // Username
+        MyCustomTF(username, {
+            username = it
+            usernameError = if (!isValidCredential(it)) "8+ chars, 1 capital & symbol" else null
+        }, "Username", Icons.Default.Person, "Username Icon", isError = usernameError != null)
+        usernameError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
         Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(email, { email = it }, "Email", Icons.Default.Email, "Email Icon")
+
+        // Email
+        MyCustomTF(email, {
+            email = it
+            emailError = if (!it.contains("@") || !it.contains(".")) "Invalid email format" else null
+        }, "Email", Icons.Default.Email, "Email Icon", isError = emailError != null)
+        emailError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
         Spacer(modifier = Modifier.height(10.dp))
-        MyCustomPasswordTF(password, { password = it }, "Password", Icons.Default.Lock, "Password Icon")
+
+        // Password
+        MyCustomPasswordTF(password, {
+            password = it
+            passwordError = if (!isValidCredential(it)) "8+ chars, 1 capital & symbol" else null
+        }, "Password", Icons.Default.Lock, "Password Icon", isError = passwordError != null)
+        passwordError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
         Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(weight, { weight = it }, "Weight (kg)", Icons.Default.Scale, "Weight Icon")
+
+        // Weight
+        MyCustomTF(weight, {
+            weight = it
+            val w = it.toDoubleOrNull()
+            weightError = when {
+                w == null -> "Enter a valid weight"
+                w !in 15.0..300.0 -> "Weight must be 15–300 kg"
+                else -> null
+            }
+        }, "Weight (kg)", Icons.Default.Scale, "Weight Icon", isError = weightError != null)
+        weightError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
         Spacer(modifier = Modifier.height(10.dp))
-        MyCustomTF(height, { height = it }, "Height (cm)", Icons.Default.Height, "Height Icon")
+
+        // Height
+        MyCustomTF(height, {
+            height = it
+            val h = it.toDoubleOrNull()
+            heightError = when {
+                h == null -> "Enter a valid height"
+                h !in 100.0..300.0 -> "Height must be 100–300 cm!!"
+                else -> null
+            }
+        }, "Height (cm)", Icons.Default.Height, "Height Icon", isError = heightError != null)
+        heightError?.let { Text(it, color = Color.Red, fontSize = 12.sp) }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(onClick = { launcher.launch("image/*") }) {
@@ -201,11 +306,22 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
                 modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)).border(2.dp, Color.White, CircleShape),
                 contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.height(10.dp))
         }
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         Button(onClick = {
             val selectedGoalList = selectedGoals.filterValues { it }.keys.toList()
+
+            val allValid = listOf(
+                firstNameError, middleNameError, lastNameError, ageError, yearsOfTrainingError,
+                usernameError, passwordError, emailError, heightError, weightError
+            ).all { it == null }
+
+            if (!allValid) {
+                Toast.makeText(context, "Please fix the highlighted errors", Toast.LENGTH_SHORT).show()
+                return@Button
+            }
 
             val user = User(
                 userID = 0,
@@ -225,19 +341,21 @@ fun SignUpScreen(nc: NavController, userViewModel: UserViewModel) {
                 foodRecommendations = emptyList()
             )
 
-            userViewModel.registerUser(
-                user,
+            userViewModel.registerUser(user,
                 onSuccess = {
                     Toast.makeText(context, "User Registered Successfully", Toast.LENGTH_SHORT).show()
                     nc.navigate(Screens.LoginScreen.screen)
                 },
-                onFailure = { error -> Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show() }
+                onFailure = { error ->
+                    Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                }
             )
         }) {
             Text("Sign Up")
         }
     }
 }
+
 
 
 @Preview(showBackground = true)

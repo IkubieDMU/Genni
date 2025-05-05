@@ -38,59 +38,56 @@ import com.example.genni.ui.theme.white
 
 // Username & Password Composables
 @Composable
-fun MyCustomTF(value: String, updatedValue: (String) -> Unit, labelText: String, leading_Icon: ImageVector, iconDesc: String) {
+fun MyCustomTF(value: String, updatedValue: (String) -> Unit, labelText: String, leading_Icon: ImageVector, iconDesc: String, isError: Boolean = false) {
     OutlinedTextField(
         value = value,
         onValueChange = { updatedValue(it) },
         label = { Text(text = labelText) },
+        isError = isError,
         shape = RoundedCornerShape(30.dp),
         colors = TextFieldDefaults.colors(
-            focusedLeadingIconColor = mintGreen,
-            unfocusedLeadingIconColor = mintGreen,
+            focusedLeadingIconColor = if (isError) Color.Red else mintGreen,
+            unfocusedLeadingIconColor = if (isError) Color.Red else mintGreen,
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = mintGreen,
-            unfocusedIndicatorColor = mintGreen,
-            unfocusedPlaceholderColor = mintGreen,
+            focusedIndicatorColor = if (isError) Color.Red else mintGreen,
+            unfocusedIndicatorColor = if (isError) Color.Red else mintGreen,
+            focusedLabelColor = if (isError) Color.Red else mintGreen,
+            unfocusedLabelColor = if (isError) Color.Red else mintGreen,
             focusedTextColor = white,
-            unfocusedTextColor = white,
-            focusedLabelColor = mintGreen,
-            unfocusedLabelColor = mintGreen
+            unfocusedTextColor = white
         ),
         leadingIcon = {
             Icon(imageVector = leading_Icon, contentDescription = iconDesc)
         },
-        modifier = Modifier.width(335.dp).padding(bottom = 8.dp)
+        modifier = Modifier
+            .width(335.dp)
+            .padding(bottom = 8.dp)
     )
 }
 
+
 @Composable
-fun MyCustomPasswordTF(
-    value: String,
-    updatedValue: (String) -> Unit,
-    labelText: String,
-    leading_Icon: ImageVector,
-    iconDesc: String
-) {
-    var passwordVisible by remember { mutableStateOf(false) } // Track visibility state
+fun MyCustomPasswordTF(value: String, updatedValue: (String) -> Unit, labelText: String, leading_Icon: ImageVector, iconDesc: String, isError: Boolean = false) {
+    var passwordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
         value = value,
         onValueChange = { updatedValue(it) },
         label = { Text(text = labelText) },
+        isError = isError,
         shape = RoundedCornerShape(30.dp),
         colors = TextFieldDefaults.colors(
-            focusedLeadingIconColor = mintGreen,
-            unfocusedLeadingIconColor = mintGreen,
+            focusedLeadingIconColor = if (isError) Color.Red else mintGreen,
+            unfocusedLeadingIconColor = if (isError) Color.Red else mintGreen,
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = mintGreen,
-            unfocusedIndicatorColor = mintGreen,
-            unfocusedPlaceholderColor = mintGreen,
+            focusedIndicatorColor = if (isError) Color.Red else mintGreen,
+            unfocusedIndicatorColor = if (isError) Color.Red else mintGreen,
+            focusedLabelColor = if (isError) Color.Red else mintGreen,
+            unfocusedLabelColor = if (isError) Color.Red else mintGreen,
             focusedTextColor = white,
-            unfocusedTextColor = white,
-            focusedLabelColor = mintGreen,
-            unfocusedLabelColor = mintGreen
+            unfocusedTextColor = white
         ),
         leadingIcon = {
             Icon(imageVector = leading_Icon, contentDescription = iconDesc)
@@ -100,7 +97,7 @@ fun MyCustomPasswordTF(
                 Icon(
                     imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                     contentDescription = if (passwordVisible) "Hide Password" else "Show Password",
-                    tint = mintGreen
+                    tint = if (isError) Color.Red else mintGreen
                 )
             }
         },
@@ -110,6 +107,7 @@ fun MyCustomPasswordTF(
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
     )
 }
+
 
 // When text is clicked, do something
 @Composable

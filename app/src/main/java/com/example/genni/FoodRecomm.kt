@@ -30,9 +30,6 @@ import com.example.genni.viewmodels.HCViewModel
 @Composable
 fun FoodRecommScreen(nc: NavController,hcViewModel: HCViewModel, authViewModel: AuthViewModel, isMale: Boolean = true) {
 
-    val currentUser by authViewModel.currentUser.collectAsState()
-    val navEntry = remember(nc) { nc.previousBackStackEntry }
-
     // Read saved state values passed from previous screen
     val bmi by hcViewModel.bmi.collectAsState()
     val bfp by hcViewModel.bfp.collectAsState()
@@ -155,11 +152,7 @@ fun FoodRecommScreen(nc: NavController,hcViewModel: HCViewModel, authViewModel: 
             Text(text = "Suggested Snacks", style = MaterialTheme.typography.titleMedium, color = Color.White, modifier = Modifier.padding(top = 16.dp))
         }
 
-        foodRecommendations["Healthy Snacks"]?.let {
-            item {
-                FoodCategoryCardWithNutrition(title = "Healthy Snacks", foods = it)
-            }
-        }
+        foodRecommendations["Healthy Snacks"]?.let { item { FoodCategoryCardWithNutrition(title = "Healthy Snacks", foods = it) } }
     }
 }
 
