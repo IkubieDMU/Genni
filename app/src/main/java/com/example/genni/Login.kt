@@ -115,10 +115,10 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
                 onClick = { nc.navigate(Screens.SignUpScreen.screen) }
             )
 
-            ClickableText(
+            /*ClickableText(
                 "Are you an Admin? Login Here", color = softLavender, fontsize = 14.sp,
                 onClick = { nc.navigate(Screens.AdminLoginScreen.screen) }
-            )
+            )*/
 
             LaunchedEffect(authState) {
                 when (authState) {

@@ -34,7 +34,7 @@ import com.example.genni.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HealthCalculationsScreen(nc: NavController, hcViewModel: HCViewModel, authViewModel: AuthViewModel, isMale: Boolean = true) {
+fun HealthStatusScreen(nc: NavController, hcViewModel: HCViewModel, authViewModel: AuthViewModel, isMale: Boolean = true) {
     val currentUser by authViewModel.currentUser.collectAsState()
     val bmi by hcViewModel.bmi.collectAsState()
     val bmr by hcViewModel.bmr.collectAsState()
@@ -121,6 +121,13 @@ fun HealthCalculationsScreen(nc: NavController, hcViewModel: HCViewModel, authVi
 
 
         TextButton(onClick = {
+            nc.currentBackStackEntry?.savedStateHandle?.set("bmi", bmi)
+            nc.currentBackStackEntry?.savedStateHandle?.set("bfp", bfp)
+            nc.currentBackStackEntry?.savedStateHandle?.set("bmr", bmr)
+            nc.currentBackStackEntry?.savedStateHandle?.set("tdee", tdee)
+            nc.currentBackStackEntry?.savedStateHandle?.set("proteinIntake", proteinIntake)
+            nc.currentBackStackEntry?.savedStateHandle?.set("waterIntake", waterIntake)
+
             nc.navigate(Screens.HCExplanationScreen.screen)
         }) {
             Text(text = "What do these results mean?", color = Color.Cyan, style = MaterialTheme.typography.bodyLarge)
@@ -219,5 +226,5 @@ fun LeanBodyMassResult(lbm: Double) {
 @Composable
 fun HCPreview() {
     val nc = rememberNavController()
-    GenniTheme { HealthCalculationsScreen(nc,HCViewModel(), AuthViewModel()) }
+    GenniTheme { HealthStatusScreen(nc,HCViewModel(), AuthViewModel()) }
 }

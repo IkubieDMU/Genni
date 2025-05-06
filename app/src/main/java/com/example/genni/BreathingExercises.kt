@@ -27,10 +27,16 @@ import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,9 +63,15 @@ import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.BEViewModel
 
 @Composable
-fun BreathingExercisesScreen(navController: NavController, viewModel: BEViewModel) {
-    // Collecting the StateFlow as a state in the composable function
-    val breathingExercises = viewModel.breathingExercises.collectAsState().value
+fun BreathingExercisesScreen(navController: NavController, beViewModel: BEViewModel) {
+    var selectedDuration by remember { mutableStateOf(5) }
+
+    // Regenerate session whenever duration changes
+    LaunchedEffect(selectedDuration) {
+        beViewModel.generateBreathingExercises(durationMinutes = selectedDuration)
+    }
+
+    val breathingExercises = beViewModel.breathingExercises.collectAsState().value
     val context = LocalContext.current.applicationContext
 
     Column(
@@ -78,33 +90,73 @@ fun BreathingExercisesScreen(navController: NavController, viewModel: BEViewMode
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
 
-        breathingExercises.forEachIndexed { index, exercise ->
-            BreathingExerciseCard(exercise, index + 1)
-            Spacer(modifier = Modifier.height(16.dp))
+        // Duration Selector
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Select Duration: ", fontSize = 18.sp, color = Color.White)
+            Spacer(modifier = Modifier.width(8.dp))
+            DropdownMenuDurationSelector(
+                selectedDuration = selectedDuration,
+                onDurationSelected = { selectedDuration = it }
+            )
         }
 
-        Box(modifier = Modifier.fillMaxWidth()) {
-            StartButton(context = context, navController = navController)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (breathingExercises.isEmpty()) {
+            Text(
+                "No exercises generated.",
+                color = Color.White,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        } else {
+            breathingExercises.forEachIndexed { index, exercise ->
+                BreathingExerciseCard(exercise, index + 1)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                StartButton(context = context, navController = navController)
+            }
         }
     }
 }
 
 @Composable
+fun DropdownMenuDurationSelector(selectedDuration: Int, onDurationSelected: (Int) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val options = (5..10).toList()
+
+    Box {
+        Button(onClick = { expanded = true }) {
+            Text("$selectedDuration min")
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { duration ->
+                DropdownMenuItem(
+                    text = { Text("$duration minutes") },
+                    onClick = {
+                        onDurationSelected(duration)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+
+@Composable
 fun BreathingExerciseCard(exercise: BreathingExercise, exerciseNumber: Int) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .shadow(8.dp, RoundedCornerShape(20.dp))
-            .clip(RoundedCornerShape(20.dp)),
+        modifier = Modifier.fillMaxWidth().padding(8.dp).shadow(8.dp, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)),
         backgroundColor = white
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -134,9 +186,7 @@ fun BreathingExerciseCard(exercise: BreathingExercise, exerciseNumber: Int) {
 @Composable
 fun StartButton(context: Context, navController: NavController) {
     Box(
-        modifier = Modifier
-            .padding(vertical = 20.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.padding(vertical = 20.dp).fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         IconButton(
@@ -149,12 +199,7 @@ fun StartButton(context: Context, navController: NavController) {
                 .background(Brush.radialGradient(listOf(deepPurple, emeraldGreen)), CircleShape)
                 .border(2.dp, Color.White, CircleShape)
         ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "Start Breathing Session",
-                tint = Color.White,
-                modifier = Modifier.size(40.dp)
-            )
+            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Start Breathing Session", tint = Color.White, modifier = Modifier.size(40.dp))
         }
     }
 }

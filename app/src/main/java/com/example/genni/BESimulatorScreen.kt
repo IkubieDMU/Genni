@@ -12,11 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -33,28 +37,24 @@ import com.example.genni.viewmodels.BEViewModel
 
 @Composable
 fun BESimulatorScreen(viewModel: BEViewModel, onBreathingSessionCompleted: () -> Unit) {
+
     val breathingExercises by viewModel.breathingExercises.collectAsState()
     val currentExerciseIndex by viewModel.currentExerciseIndex.collectAsState()
     val timeLeft by viewModel.timeLeft.collectAsState()
+    val currentPhase by viewModel.currentPhase.collectAsState()
+    val isPaused by viewModel.isPaused.collectAsState()
 
     val currentExercise = breathingExercises.getOrNull(currentExerciseIndex)
+    var started by remember { mutableStateOf(false) }
 
     if (currentExercise == null) {
-        Text(
-            "Breathing Session Completed!",
-            fontSize = 24.sp,
-            color = Color.White,
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            textAlign = TextAlign.Center
-        )
         onBreathingSessionCompleted()
         return
     }
 
-    LaunchedEffect(currentExerciseIndex, timeLeft) {
-        if (timeLeft == 0) {
-            viewModel.startBreathingSession(onBreathingSessionCompleted)
-        }
+    if (breathingExercises.isEmpty()) {
+        CircularProgressIndicator(color = Color.White)
+        return
     }
 
     Column(
@@ -74,11 +74,7 @@ fun BESimulatorScreen(viewModel: BEViewModel, onBreathingSessionCompleted: () ->
         )
 
         Text(
-            text = when {
-                timeLeft > currentExercise.holdTime + currentExercise.exhaleTime -> "Inhale"
-                timeLeft > currentExercise.exhaleTime -> "Hold"
-                else -> "Exhale"
-            },
+            text = currentPhase.name.lowercase().replaceFirstChar { it.uppercase() },
             fontSize = 30.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
@@ -97,27 +93,33 @@ fun BESimulatorScreen(viewModel: BEViewModel, onBreathingSessionCompleted: () ->
 
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
         ) {
             Button(
-                onClick = { viewModel.skipExercise() },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                onClick = {
+                    if (isPaused) viewModel.resume()
+                    else viewModel.pause()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = if (isPaused) Color(0xFF4CAF50) else Color(0xFFFFA000)),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.weight(1f).padding(8.dp)
             ) {
-                Text("Skip Exercise", color = Color.White)
+                Text(if (isPaused) "Resume" else "Pause", color = Color.White)
             }
         }
 
         Button(
-            onClick = { viewModel.startBreathingSession(onBreathingSessionCompleted) },
+            onClick = {
+                if (!started) {
+                    started = true
+                    viewModel.startBreathingSession(onBreathingSessionCompleted)
+                }
+            },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
-            Text("Start / Next", color = Color.White, modifier = Modifier.padding(8.dp))
+            Text("Start", color = Color.White, modifier = Modifier.padding(8.dp))
         }
     }
 }

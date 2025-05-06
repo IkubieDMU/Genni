@@ -63,8 +63,8 @@ fun SettingsScreen(nc: NavController, authViewModel: AuthViewModel, appSettingsV
         Text("Settings", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
         Spacer(modifier = Modifier.height(24.dp))
 
-        SettingToggle("Dark Mode", isDarkMode) { appSettingsViewModel.toggleDarkTheme() }
-        SettingToggle("Enable Notifications", notifications) { appSettingsViewModel.toggleNotifications() }
+        /*SettingToggle("Dark Mode", isDarkMode) { appSettingsViewModel.toggleDarkTheme() }
+        SettingToggle("Enable Notifications", notifications) { appSettingsViewModel.toggleNotifications() }*/
 
         //SettingToggle("Use Metric Units", metric) { appSettingsViewModel.toggleMetric() }
         //SettingToggle("Auto-start Workouts", autoStart) { appSettingsViewModel.toggleAutoStart() }

@@ -6,57 +6,76 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.genni.states.ResetState
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 // ViewModel to manage the Forgot Password screen logic
 class ForgetPasswordViewModel : ViewModel() {
 
-    // Holds the user's email input
-    // `mutableStateOf` allows Compose to reactively update UI when this value changes
     var email by mutableStateOf("")
-        private set  // `private set` ensures that only the ViewModel can modify the email
+        private set
 
-    // Holds the UI state for the password reset process
-    // `_uiState` is private to ensure controlled updates inside the ViewModel
     private val _uiState = MutableStateFlow<ResetState>(ResetState.Idle)
-
-    // Publicly exposed immutable StateFlow so the UI can observe changes
     val uiState: StateFlow<ResetState> = _uiState
 
-    // METHODS
+    private val db = FirebaseFirestore.getInstance()
 
-    /**
-     * Updates the email state when the user types in the email field.
-     * @param newEmail The updated email entered by the user.
-     */
+    private val _navigateToResetPage = MutableStateFlow(false)
+    val navigateToResetPage: StateFlow<Boolean> = _navigateToResetPage
+
     fun onEmailChange(newEmail: String) {
-        email = newEmail  // Update email state
+        email = newEmail
     }
 
-    /**
-     * Handles the password reset logic.
-     * It checks if the email field is empty, then simulates sending a reset email.
-     */
     fun resetPassword() {
-        // Check if email is empty, show an error state if true
         if (email.isBlank()) {
             _uiState.value = ResetState.Error("Email cannot be empty")
             return
         }
 
-        // Set UI state to Loading to indicate ongoing process
         _uiState.value = ResetState.Loading
 
-        // Simulating network call using coroutine
         viewModelScope.launch {
-            delay(5000) // Simulating a delay of 5 seconds for network request
-            // Update UI state to Success when the reset process is completed
-            _uiState.value = ResetState.Success("Password reset link sent to $email")
+            try {
+                val querySnapshot = db.collection("Users").whereEqualTo("email", email).get().await()
+
+                if (querySnapshot.isEmpty) {
+                    _uiState.value = ResetState.Error("No account found with this email")
+                    return@launch
+                }
+
+                _navigateToResetPage.value = true
+                _uiState.value = ResetState.Idle // Reset state
+
+            } catch (e: Exception) {
+                _uiState.value = ResetState.Error("An error occurred: ${e.localizedMessage}")
+            }
         }
     }
+
+    fun updatePassword(newPassword: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val querySnapshot = db.collection("Users").whereEqualTo("email", email).get().await()
+
+                if (!querySnapshot.isEmpty) {
+                    val docId = querySnapshot.documents.first().id
+                    db.collection("Users").document(docId).update("password", newPassword).await()
+                    onResult(true)
+                } else {
+                    onResult(false)
+                }
+            } catch (e: Exception) {
+                onResult(false)
+            }
+        }
+    }
+
+    fun onNavigateHandled() {
+        _navigateToResetPage.value = false
+    }
 }
-
-

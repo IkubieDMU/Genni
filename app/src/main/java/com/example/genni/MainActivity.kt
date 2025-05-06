@@ -32,9 +32,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GenniTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { App() }
-            }
+            GenniTheme { Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { App() } }
         }
     }
 }
@@ -50,6 +48,8 @@ fun App() {
     val adminViewModel = remember { AdminViewModel() }
     val homeViewModel = remember { HomeViewModel() }
     val hcViewModel = remember { HCViewModel() }
+    val fpViewModel = remember { ForgetPasswordViewModel() }
+    val beViewModel = remember { BEViewModel() }
 
     val isDarkTheme = appSettingsViewModel.isDarkTheme
 
@@ -58,20 +58,17 @@ fun App() {
             composable(Screens.LoginScreen.screen) { LoginScreen(navigationController, authViewModel, userViewModel) }
             composable(Screens.HomeScreen.screen) { HomeScreen(navigationController, homeViewModel, authViewModel, workoutViewModel) }
             composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController, userViewModel) }
-            composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController, ForgetPasswordViewModel()) }
+            composable(Screens.ForgetPasswordScreen.screen) { ForgotPasswordScreen(navigationController,fpViewModel) }
             composable(Screens.GeneratedWorkoutScreen.screen) { GeneratedWorkoutScreen(workoutViewModel,authViewModel, navigationController) }
-            composable(Screens.WorkoutSimulatorScreen.screen) {
-                WorkoutSimulatorScreen(
-                    viewModel = workoutViewModel, onWorkoutCompleted = { navigationController.popBackStack() }
-                )
-            }
-            composable(Screens.HealthCalculationsScreen.screen) { HealthCalculationsScreen(navigationController,hcViewModel,authViewModel) }
-            composable(Screens.BreathingExercisesScreen.screen) { BreathingExercisesScreen(navigationController, BEViewModel()) }
-            composable(Screens.BreathingExercisesSimulatorScreen.screen) { BESimulatorScreen(BEViewModel()) { } }
+            composable(Screens.WorkoutSimulatorScreen.screen) { WorkoutSimulatorScreen(workoutViewModel, onWorkoutCompleted = { navigationController.popBackStack() }) }
+            composable(Screens.HealthCalculationsScreen.screen) { HealthStatusScreen(navigationController,hcViewModel,authViewModel) }
+            composable(Screens.BreathingExercisesScreen.screen) { BreathingExercisesScreen(navigationController, beViewModel) }
+            composable(Screens.BreathingExercisesSimulatorScreen.screen) { BESimulatorScreen(beViewModel) { } }
             composable(Screens.SettingsScreen.screen) { SettingsScreen(navigationController, authViewModel, appSettingsViewModel) }
             composable(Screens.AboutScreen.screen) { AboutScreen() }
             composable(Screens.ProfileScreen.screen) { ProfileScreen(authViewModel) }
             composable(Screens.FoodRecommScreen.screen) { FoodRecommScreen(navigationController,hcViewModel,authViewModel) }
+            composable(Screens.FPContdScreen.screen) { FPContd(fpViewModel,navigationController) }
 
             // Admin's Composables
             composable(Screens.AdminHomeScreen.screen) { AdminHomeScreen() }

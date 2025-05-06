@@ -3,6 +3,7 @@ package com.example.genni.viewmodels
 import android.content.Context
 import android.content.res.Resources
 import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,9 +18,14 @@ import com.example.genni.states.WorkoutState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+
 
 class WorkoutViewModel : ViewModel() {
 
@@ -32,14 +38,23 @@ class WorkoutViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    private val _progress = mutableStateOf(0f)
+    val progress: State<Float> = _progress
+
     var currentGeneratedWorkout by mutableStateOf<List<Workout>>(emptyList())
-    var savedWorkouts by mutableStateOf<List<SavedWorkout>>(emptyList())
-        private set
+    private val _savedWorkouts = MutableStateFlow<List<SavedWorkout>>(emptyList())
+    val savedWorkouts: StateFlow<List<SavedWorkout>> = _savedWorkouts.asStateFlow()
 
     var currentExerciseIndex = mutableStateOf(0)
     var currentSet = mutableStateOf(1)
     var currentState = mutableStateOf(WorkoutState.Exercise)
     var timeLeft = mutableStateOf(0)
+    private val _isPaused = mutableStateOf(false)
+    val isPaused: Boolean get() = _isPaused.value
+
+    private var workoutJob: Job? = null
+    //private var resumeWorkout = true
+    var isWorkoutRunning by mutableStateOf(false)
 
     init {
         fetchWorkoutsFromFirestore()
@@ -87,24 +102,16 @@ class WorkoutViewModel : ViewModel() {
         }
     }
 
-    // Filters the list of all workouts based on selected muscle groups and equipment
     private fun filterExercisesBy(muscles: List<String>, equipment: List<String>): List<Workout> {
         return _allWorkouts.filter { workout ->
-            // Check if the workout targets at least one of the selected muscle groups (case-insensitive)
             val matchMuscle = workout.muscleGroupWorked.any { it.trim().equalsAnyIgnoreCase(muscles) }
-
-            // Check if the workout uses at least one of the selected equipment (or allow all if none selected)
             val matchEquip = equipment.isEmpty() || workout.equipmentUsed.any { it.trim().equalsAnyIgnoreCase(equipment) }
-
-            // Include the workout only if both muscle and equipment match the criteria
             matchMuscle && matchEquip
         }.ifEmpty {
-            // If no workouts match, return a randomized list of all workouts as fallback
             _allWorkouts.shuffled()
         }
     }
 
-    // Extension function to check if a string equals any item in a list (case-insensitive comparison)
     private fun String.equalsAnyIgnoreCase(list: List<String>): Boolean {
         return list.any { it.equals(this, ignoreCase = true) }
     }
@@ -113,12 +120,13 @@ class WorkoutViewModel : ViewModel() {
         viewModelScope.launch {
             _workouts.clear()
             val filtered = filterExercisesBy(muscles, equipment)
-            val count = duration / 5
-            val selected = filtered.shuffled().take(count)
-
-            val generatedList = mutableListOf<Workout>() // Create a new list
+            val timePerSet = 1
+            val timePerWorkout = timePerSet * sets
+            val workoutCount = duration / timePerWorkout
+            val selected = filtered.shuffled().take(workoutCount)
+            val generatedList = mutableListOf<Workout>()
             selected.forEachIndexed { index, workout ->
-                generatedList.add( // Add to the new list
+                generatedList.add(
                     workout.copy(
                         index = index + 1,
                         sets = sets.takeIf { it > 0 } ?: Random.nextInt(3, 5),
@@ -127,54 +135,76 @@ class WorkoutViewModel : ViewModel() {
                     )
                 )
             }
-            _workouts.addAll(generatedList) // Update the _workouts list
-            currentGeneratedWorkout = generatedList // Update currentGeneratedWorkout
+            _workouts.addAll(generatedList)
+            currentGeneratedWorkout = generatedList
+        }
+    }
+
+    private suspend fun waitWhilePaused() {
+        while (_isPaused.value) {
+            delay(100)
         }
     }
 
     fun startWorkout(onFinished: () -> Unit) {
-        if (currentExerciseIndex.value >= workouts.size) {
-            onFinished()
-            return
-        }
-
-        val currentWorkout = workouts[currentExerciseIndex.value]
-        timeLeft.value = currentWorkout.restTime * 60
-
-        viewModelScope.launch {
+        if (workoutJob?.isActive == true) return
+        isWorkoutRunning = true
+        updateProgress()
+        workoutJob = viewModelScope.launch {
             while (currentExerciseIndex.value < workouts.size) {
-                when (currentState.value) {
-                    WorkoutState.Exercise -> {
-                        timeLeft.value = 60
-                        while (timeLeft.value > 0) {
-                            delay(1000)
+                val currentWorkout = workouts[currentExerciseIndex.value]
+                while (currentSet.value <= currentWorkout.sets) {
+                    currentState.value = WorkoutState.Exercise
+                    timeLeft.value = 60
+                    while (timeLeft.value > 0) {
+                        delay(1000)
+                        if (!_isPaused.value) {
                             timeLeft.value--
-                        }
-
-                        if (currentSet.value >= currentWorkout.sets) {
-                            currentSet.value = 1
-                            currentExerciseIndex.value++
-                            currentState.value = WorkoutState.Rest
                         } else {
-                            currentSet.value++
+                            waitWhilePaused()
                         }
                     }
-
-                    WorkoutState.Rest -> {
+                    if (currentSet.value >= currentWorkout.sets) {
+                        break
+                    } else {
+                        currentState.value = WorkoutState.Rest
+                        timeLeft.value = currentWorkout.restTime * 60
                         while (timeLeft.value > 0) {
                             delay(1000)
-                            timeLeft.value--
+                            if (!_isPaused.value) {
+                                timeLeft.value--
+                            } else {
+                                waitWhilePaused()
+                            }
                         }
-                        currentState.value = WorkoutState.Exercise
+                        currentSet.value++
                     }
-
-                    WorkoutState.Completed -> {
-                        onFinished()
-                        return@launch
+                }
+                currentSet.value = 1
+                currentExerciseIndex.value++
+                if (currentExerciseIndex.value < workouts.size) {
+                    currentState.value = WorkoutState.Rest
+                    timeLeft.value = currentWorkout.restTime * 60
+                    while (timeLeft.value > 0) {
+                        delay(1000)
+                        if (!_isPaused.value) {
+                            timeLeft.value--
+                        } else {
+                            waitWhilePaused()
+                        }
                     }
                 }
             }
+            currentState.value = WorkoutState.Completed
+            isWorkoutRunning = false
+            onFinished()
         }
+    }
+
+    private fun updateProgress() {
+        val totalSets = workouts.sumOf { it.sets }
+        val completedSets = workouts.take(currentExerciseIndex.value).sumOf { it.sets } + (currentSet.value - 1)
+        _progress.value = if (totalSets == 0) 0f else (completedSets.toFloat() / totalSets).coerceIn(0f, 1f)
     }
 
     fun skipSet() {
@@ -183,22 +213,43 @@ class WorkoutViewModel : ViewModel() {
             if (currentSet.value >= workout.sets) {
                 currentSet.value = 1
                 currentExerciseIndex.value++
-                currentState.value = WorkoutState.Rest
+                if (currentExerciseIndex.value < workouts.size) {
+                    currentState.value = WorkoutState.Exercise
+                    timeLeft.value = 60
+                } else {
+                    currentState.value = WorkoutState.Completed
+                    timeLeft.value = 0
+                }
             } else {
                 currentSet.value++
-                timeLeft.value = 60
                 currentState.value = WorkoutState.Exercise
+                timeLeft.value = 60
             }
+            updateProgress()
         }
     }
 
     fun skipExercise() {
         currentExerciseIndex.value++
         currentSet.value = 1
-        currentState.value = WorkoutState.Exercise
+        if (currentExerciseIndex.value < workouts.size) {
+            currentState.value = WorkoutState.Exercise
+            timeLeft.value = 60
+        } else {
+            currentState.value = WorkoutState.Completed
+            timeLeft.value = 0
+        }
+        updateProgress()
     }
 
-    // Save the current generated workout list as a SavedWorkout under root "SavedWorkouts"
+    fun pauseWorkout() {
+        _isPaused.value = true
+    }
+
+    fun unpauseWorkout() {
+        _isPaused.value = false
+    }
+
     fun saveCurrentWorkout(workoutName: String, userId: String, context: Context, onSuccess: () -> Unit, onError: (String) -> Unit) {
         if (workoutName.isBlank()) {
             onError("Workout name cannot be empty.")
@@ -230,7 +281,8 @@ class WorkoutViewModel : ViewModel() {
                 .set(doc)
                 .addOnSuccessListener {
                     val saved = SavedWorkout(id = formattedWorkoutName, name = workoutName, timestamp = timestamp, workouts = workoutsToSave)
-                    savedWorkouts = listOf(saved) + savedWorkouts
+                    // Update the StateFlow's value correctly
+                    _savedWorkouts.value = listOf(saved) + _savedWorkouts.value
                     onSuccess()
                 }
                 .addOnFailureListener { e ->
@@ -241,12 +293,12 @@ class WorkoutViewModel : ViewModel() {
         }
     }
 
-
     fun loadSavedWorkouts(userId: String, onError: (String) -> Unit = {}) {
         if (userId.isBlank()) {
             onError("User ID is missing")
             return
         }
+        Log.d("LoadWorkouts", "Loading saved workouts for user: $userId")
 
         db.collection("Users")
             .document(userId)
@@ -255,48 +307,47 @@ class WorkoutViewModel : ViewModel() {
             .get()
             .addOnSuccessListener { snap ->
                 val list = snap.documents.mapNotNull { doc ->
-                    val name      = doc.getString("name") ?: return@mapNotNull null
-                    val ts        = doc.getLong("timestamp") ?: 0L
-                    val rawList   = doc.get("workouts") as? List<Map<String, Any>> ?: return@mapNotNull null
-                    val workouts  = rawList.map { map -> map.toWorkout() }
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    val ts = doc.getLong("timestamp") ?: 0L
+                    val rawList = doc.get("workouts") as? List<Map<String, Any>> ?: return@mapNotNull null
+                    val workouts = rawList.map { map -> map.toWorkout() }.filterNotNull()
                     SavedWorkout(id = doc.id, name = name, timestamp = ts, workouts = workouts)
                 }
-                savedWorkouts = list
+                // Update the StateFlow's value correctly
+                _savedWorkouts.value = list
             }
             .addOnFailureListener { e ->
                 onError(e.message ?: "Failed to load saved workouts")
             }
     }
 
-
-
-    fun Map<String, Any>.toWorkout(): Workout {
-        return Workout(
-            index = (this["index"] as Long).toInt(),
-            name = this["name"] as String,
-            sets = (this["sets"] as Long).toInt(),
-            reps = (this["reps"] as Long).toInt(),
-            restTime = (this["restTime"] as Long).toInt(),
-            muscleGroupWorked = this["muscleGroupWorked"] as List<String>,
-            equipmentUsed = this["equipmentUsed"] as List<String>,
-            imageResID = getImageResId(this["imageName"] as String)
-        )
+    fun Map<String, Any>.toWorkout(): Workout? {
+        return try {
+            Workout(
+                index = (this["index"] as? Long)?.toInt() ?: -1,
+                name = this["name"] as? String ?: "",
+                sets = (this["sets"] as? Long)?.toInt() ?: 0,
+                reps = (this["reps"] as? Long)?.toInt() ?: 0,
+                restTime = (this["restTime"] as? Long)?.toInt() ?: 0,
+                muscleGroupWorked = this["muscleGroupWorked"] as? List<String> ?: emptyList(),
+                equipmentUsed = this["equipmentUsed"] as? List<String> ?: emptyList(),
+                imageResID = (this["imageName"] as? String)?.let { getImageResId(it) } ?: 0,
+                progress = (this["progress"] as? Double)?.toFloat() ?: 0f
+            )
+        } catch (e: ClassCastException) {
+            Log.e("Workout Conversion", "Error converting map to Workout: ${e.message}", e)
+            null
+        }
     }
 
-    // Helper function to get the string name of a resource ID.
     fun getImageNameFromRes(context: Context, resId: Int): String {
         return try {
-            // Attempt to retrieve the entry name (which is the file name without the extension)
-            // of the resource ID from the application's resources.
             context.resources.getResourceEntryName(resId)
         } catch (e: Resources.NotFoundException) {
-            // If the resource ID is not found, return a default string "unknown_image".
             "unknown_image"
         }
     }
 
-
-    // Helper to serialize
     fun Workout.toMap(): Map<String,Any> = mapOf(
         "index"              to index,
         "name"               to name,
@@ -305,8 +356,7 @@ class WorkoutViewModel : ViewModel() {
         "restTime"           to restTime,
         "muscleGroupWorked"  to muscleGroupWorked,
         "equipmentUsed"      to equipmentUsed,
-        // if you want to reconstruct images later, store the original imageName instead of ID
-        //"imageName"          to "" /* you’ll need a reverse lookup here, or omit entirely */
+        // "imageName"          to ""
     )
 
     fun setCurrentWorkout(newWorkout: List<Workout>) {
@@ -332,5 +382,4 @@ class WorkoutViewModel : ViewModel() {
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError(e.message ?: "Failed to delete workout") }
     }
-
 }

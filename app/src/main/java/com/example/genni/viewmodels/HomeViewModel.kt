@@ -21,8 +21,12 @@ class HomeViewModel : ViewModel() {
     // Sets and Reps selection
     private val _sets = MutableStateFlow(0)
     private val _reps = MutableStateFlow(0)
+    private val _restTimePerExercise = MutableStateFlow(0)
+    private val _restTimePerSet = MutableStateFlow(0)
     val sets: StateFlow<Int> = _sets
     val reps: StateFlow<Int> = _reps
+    val restTimePerExercise: StateFlow<Int> = _restTimePerExercise
+    val restTimePerSet: StateFlow<Int> = _restTimePerSet
 
     // Equipment selection
     private val _selectedEquipment = MutableStateFlow<List<String>>(emptyList())
@@ -41,10 +45,13 @@ class HomeViewModel : ViewModel() {
         _selectedMuscleGroups.value = muscleGroups
     }
 
-    fun setSetsAndReps(sets: Int, reps: Int) {
+    fun setSetsAndReps(sets: Int, reps: Int, restTimePerExercise: Int, restTimePerSet: Int) {
         _sets.value = sets
         _reps.value = reps
+        _restTimePerExercise.value = restTimePerExercise
+        _restTimePerSet.value = restTimePerSet
     }
+
 
     fun setEquipment(equipment: List<String>) {
         _selectedEquipment.value = equipment
@@ -67,4 +74,3 @@ class HomeViewModel : ViewModel() {
         nc.navigate(Screens.GeneratedWorkoutScreen.screen)
     }
 }
-
