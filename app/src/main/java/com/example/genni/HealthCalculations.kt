@@ -28,6 +28,7 @@ import com.example.genni.ui.theme.white
 import com.example.genni.viewmodels.HCViewModel
 
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.genni.viewmodels.AuthViewModel
@@ -44,6 +45,7 @@ fun HealthStatusScreen(nc: NavController, hcViewModel: HCViewModel, authViewMode
     val waterIntake by hcViewModel.waterIntake.collectAsState()
 
     // When the screen loads, use user data to calculate values
+    LaunchedEffect(currentUser) {
         currentUser?.let { user ->
             if (!hcViewModel.calculated.value) {
                 hcViewModel.onWeightChange(user.weight.toString())
@@ -52,6 +54,7 @@ fun HealthStatusScreen(nc: NavController, hcViewModel: HCViewModel, authViewMode
                 hcViewModel.calculate()
             }
         }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(deepPurple, Color(0xFF111328)))),

@@ -69,13 +69,14 @@ fun App() {
             composable(Screens.ProfileScreen.screen) { ProfileScreen(authViewModel) }
             composable(Screens.FoodRecommScreen.screen) { FoodRecommScreen(navigationController,hcViewModel,authViewModel) }
             composable(Screens.FPContdScreen.screen) { FPContd(fpViewModel,navigationController) }
+            composable(Screens.SavedWorkoutScreen.screen) { SavedWorkoutsScreen(workoutViewModel,authViewModel,navigationController) }
 
             // Admin's Composables
             composable(Screens.AdminHomeScreen.screen) { AdminHomeScreen() }
             composable(Screens.AdminLoginScreen.screen) { AdminLoginScreen(navigationController, adminViewModel, authViewModel) }
             composable(Screens.AdminSignUpScreen.screen) { AdminSignUpScreen(navigationController,adminViewModel) }
             composable(Screens.HCExplanationScreen.screen) { HealthMetricsExplanationScreen(navigationController) }
-            composable(Screens.SavedWorkoutScreen.screen) { SavedWorkoutsScreen(workoutViewModel,authViewModel,navigationController) }
+
         }
     }
 }
