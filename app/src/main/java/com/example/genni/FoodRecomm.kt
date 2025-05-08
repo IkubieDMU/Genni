@@ -1,7 +1,9 @@
 package com.example.genni
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,26 +11,35 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.genni.models.FoodItem
 import com.example.genni.ui.theme.deepPurple
+import com.example.genni.ui.theme.softLavender
 import com.example.genni.viewmodels.AuthViewModel
 import com.example.genni.viewmodels.HCViewModel
 
 @Composable
-fun FoodRecommScreen(nc: NavController,hcViewModel: HCViewModel, authViewModel: AuthViewModel, isMale: Boolean = true) {
+fun FoodRecommScreen(nc: NavController, hcViewModel: HCViewModel, authViewModel: AuthViewModel, isMale: Boolean = true) {
 
     // Read saved state values passed from previous screen
     val bmi by hcViewModel.bmi.collectAsState()
@@ -113,7 +124,13 @@ fun FoodRecommScreen(nc: NavController,hcViewModel: HCViewModel, authViewModel: 
     )
 
 
-    LazyColumn(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(deepPurple, Color(0xFF111328)))).padding(16.dp)) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(deepPurple, Color(0xFF111328))))
+            .padding(16.dp),
+        contentPadding = PaddingValues(bottom = 72.dp) // Added padding for the button
+    ) {
         item {
             Text(
                 text = "Recommended Foods for You",
@@ -153,8 +170,50 @@ fun FoodRecommScreen(nc: NavController,hcViewModel: HCViewModel, authViewModel: 
         }
 
         foodRecommendations["Healthy Snacks"]?.let { item { FoodCategoryCardWithNutrition(title = "Healthy Snacks", foods = it) } }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp)) // Added space above the button
+        }
     }
-}
+
+   /* Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .align(Alignment.BottomCenter),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(
+            onClick = {
+                // Trigger PDF generation here
+                val recommendations = foodRecommendations[recommendedCategory].orEmpty()
+                val snacks = foodRecommendations["Healthy Snacks"].orEmpty()
+                val targetInfo = if (tdee != null && proteinIntake != null) {
+                    "Target: %.0f kcal/day, %.0f–%.0f g protein/day".format(
+                        tdee!!,
+                        proteinIntake!!.first,
+                        proteinIntake!!.second
+                    )
+                } else {
+                    ""
+                }
+                hcViewModel.generateFoodRecommendationPdf(
+                    context = LocalContext.current,
+                    goal = recommendedCategory,
+                    targetInfo = targetInfo,
+                    recommendedFoods = recommendations,
+                    snacks = snacks
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = softLavender),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+        ) {
+            Icon(Icons.Filled.Fastfood, contentDescription = "Generate PDF", tint = deepPurple, modifier = Modifier.padding(end = 8.dp))
+            Text("Generate Food PDF", color = deepPurple, fontWeight = FontWeight.SemiBold)
+        }*/
+    }
 
 @Composable
 fun FoodCategoryCardWithNutrition(title: String, foods: List<FoodItem>) {

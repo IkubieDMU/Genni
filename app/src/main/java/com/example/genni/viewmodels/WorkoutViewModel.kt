@@ -263,12 +263,12 @@ class WorkoutViewModel : ViewModel() {
         }
 
         val timestamp = System.currentTimeMillis()
-        val workoutData = workoutsToSave.map { it.toMap() }
+        val workoutData = workoutsToSave.map { it.toMap() } // Correctly converts to List<Map>
 
         val doc = mapOf(
             "name" to workoutName,
             "timestamp" to timestamp,
-            "workouts" to workoutData
+            "workouts" to workoutData // Saves as List<Map>
         )
 
         val formattedWorkoutName = workoutName.trim().replace(Regex("[^A-Za-z0-9]"), "_").lowercase()
@@ -281,7 +281,6 @@ class WorkoutViewModel : ViewModel() {
                 .set(doc)
                 .addOnSuccessListener {
                     val saved = SavedWorkout(id = formattedWorkoutName, name = workoutName, timestamp = timestamp, workouts = workoutsToSave)
-                    // Update the StateFlow's value correctly
                     _savedWorkouts.value = listOf(saved) + _savedWorkouts.value
                     onSuccess()
                 }
@@ -291,34 +290,6 @@ class WorkoutViewModel : ViewModel() {
         } else {
             onError("User ID is missing")
         }
-    }
-
-    fun loadSavedWorkouts(userId: String, onError: (String) -> Unit = {}) {
-        if (userId.isBlank()) {
-            onError("User ID is missing")
-            return
-        }
-        Log.d("LoadWorkouts", "Loading saved workouts for user: $userId")
-
-        db.collection("Users")
-            .document(userId)
-            .collection("SavedWorkouts")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .get()
-            .addOnSuccessListener { snap ->
-                val list = snap.documents.mapNotNull { doc ->
-                    val name = doc.getString("name") ?: return@mapNotNull null
-                    val ts = doc.getLong("timestamp") ?: 0L
-                    val rawList = doc.get("workouts") as? List<Map<String, Any>> ?: return@mapNotNull null
-                    val workouts = rawList.map { map -> map.toWorkout() }.filterNotNull()
-                    SavedWorkout(id = doc.id, name = name, timestamp = ts, workouts = workouts)
-                }
-                // Update the StateFlow's value correctly
-                _savedWorkouts.value = list
-            }
-            .addOnFailureListener { e ->
-                onError(e.message ?: "Failed to load saved workouts")
-            }
     }
 
     fun Map<String, Any>.toWorkout(): Workout? {
@@ -358,6 +329,39 @@ class WorkoutViewModel : ViewModel() {
         "equipmentUsed"      to equipmentUsed,
         // "imageName"          to ""
     )
+
+    fun loadSavedWorkouts(userId: String, onError: (String) -> Unit = {}) {
+        if (userId.isBlank()) {
+            onError("User ID is missing")
+            return
+        }
+        Log.d("LoadWorkouts", "Loading saved workouts for user: $userId")
+
+        db.collection("Users")
+            .document(userId)
+            .collection("SavedWorkouts")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { snap ->
+                val list = snap.documents.mapNotNull { doc ->
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    val ts = doc.getLong("timestamp") ?: 0L
+                    val rawWorkouts = doc.get("workouts") as? List<Map<String, Any>>
+                    if (rawWorkouts != null) {
+                        val workouts = rawWorkouts.mapNotNull { it.toWorkout() }
+                        SavedWorkout(id = doc.id, name = name, timestamp = ts, workouts = workouts)
+                    } else {
+                        Log.w("LoadWorkouts", "Skipping document ${doc.id} - 'workouts' field is missing or not a List")
+                        null
+                    }
+                }
+                // Update the StateFlow's value correctly
+                _savedWorkouts.value = list
+            }
+            .addOnFailureListener { e ->
+                onError(e.message ?: "Failed to load saved workouts")
+            }
+    }
 
     fun setCurrentWorkout(newWorkout: List<Workout>) {
         _workouts.clear()
