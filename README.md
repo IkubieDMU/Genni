@@ -30,7 +30,7 @@ Welcome to the complete documentation for your Genni Android application! This g
 
 This section covers the foundational parts of your app, including where it starts and how it navigates between different sections.
 
-### 1.1. `MainActivity.kt` - The App's Launchpad 🚀
+### `MainActivity.kt` - The App's Launchpad 🚀
 
 This is the very first file that runs when your app starts. It's like the main control center!
 
@@ -48,7 +48,7 @@ This is the very first file that runs when your app starts. It's like the main c
         * `startDestination = Screens.LoginScreen.screen`: When the app first opens, it always lands on the login screen. ➡️
         * **`composable(Screens.ScreenName.screen) { ScreenComposable(...) }`**: Each `composable` block maps a specific route (like "loginscreen") to a Composable function (like `LoginScreen`). This is how your navigator knows which UI to show for each path! ✅
 
-### 1.2. `Screens.kt` - The App's Map 🗺️📌
+### `Screens.kt` - The App's Map 🗺️📌
 
 This file contains a special type of class called a `sealed class` that lists *all* the possible screens in your app. It's like a table of contents for your navigation!
 
@@ -69,7 +69,7 @@ This file contains a special type of class called a `sealed class` that lists *a
 
 These are small, independent building blocks that you can use across many different screens to keep your UI consistent and your code clean!
 
-### 2.1. Input Fields (`MyCustomTF`, `MyCustomPasswordTF`) ⌨️
+### Input Fields (`MyCustomTF`, `MyCustomPasswordTF`) ⌨️
 
 These are custom text input fields with a consistent look and feel.
 
@@ -87,7 +87,7 @@ These are custom text input fields with a consistent look and feel.
     * **Features:** All the good stuff from `MyCustomTF`, plus:
         * **Password Visibility Toggle:** A little eye icon at the end that you can tap to show or hide the password characters. Super handy for security and usability! 👁️‍🗨️
 
-### 2.2. `ClickableText` - Tappable Text 👆
+### `ClickableText` - Tappable Text 👆
 
 ```kotlin
 @Composable
@@ -104,7 +104,7 @@ fun ClickableText(text: String, color: Color, fontsize: TextUnit, onClick: () ->
 * **Purpose:** Makes any piece of text tappable, turning it into a clickable link or button. 🔗
 * **How it works:** You give it some `text`, a `color`, a `fontsize`, and a special `onClick` action that happens when the user taps it.
 
-### 2.3. `InfoRow` - Displaying Information Neatly 📊
+### `InfoRow` - Displaying Information Neatly 📊
 
 ```kotlin
 @Composable
@@ -121,7 +121,7 @@ fun InfoRow(label: String, value: String) {
 * **Purpose:** Presents a label and its corresponding value in a clean, organized row. Perfect for profile details or health metrics. 📝
 * **Styling:** Each `InfoRow` has a slightly transparent white background with rounded corners, making individual pieces of information stand out nicely. ✨
 
-### 2.4. `SettingToggle` - On/Off Switches 🔛
+### `SettingToggle` - On/Off Switches 🔛
 
 ```kotlin
 @Composable
@@ -144,7 +144,7 @@ fun SettingToggle(label: String, state: Boolean, onToggle: (Boolean) -> Unit) {
 * **Purpose:** A reusable component for creating toggle switches for app settings. ⚙️
 * **Features:** Displays a `label` (e.g., "Dark Mode") and a `Switch` that reflects the current `state` (on/off). When toggled, it calls `onToggle` to update the setting.
 
-### 2.5. `WorkoutBox` - Interactive Workout Category Boxes 🏋️‍♂️
+### `WorkoutBox` - Interactive Workout Category Boxes 🏋️‍♂️
 
 ```kotlin
 @Composable
@@ -166,7 +166,7 @@ fun WorkoutBox(title: String, onClick: () -> Unit) {
 * **Purpose:** Used on the `HomeScreen` to represent different workout customization options (e.g., "Muscle Groups").
 * **Features:** These are square boxes with a `title`, a subtle gradient background, a white border, and rounded corners. They are `clickable` to open a bottom sheet for selection. ✨
 
-### 2.6. `PlayButton` & `StartButton` - Action Triggers ▶️
+### `PlayButton` & `StartButton` - Action Triggers ▶️
 
 These are large, visually appealing buttons to start workouts or breathing sessions.
 
@@ -177,7 +177,7 @@ These are large, visually appealing buttons to start workouts or breathing sessi
     * **Purpose:** Starts the breathing exercise session. 🧘‍♀️
     * **Features:** Very similar to `PlayButton`, it's a large, circular `IconButton` that navigates to the `BreathingExercisesSimulatorScreen`.
 
-### 2.7. `DropdownMenuDurationSelector` - Time Selection ⏰
+### `DropdownMenuDurationSelector` - Time Selection ⏰
 
 ```kotlin
 @Composable
@@ -207,7 +207,7 @@ fun DropdownMenuDurationSelector(selectedDuration: Int, onDurationSelected: (Int
 * **Purpose:** Allows users to select a duration (e.g., for breathing exercises) from a dropdown menu.
 * **Features:** Displays a button showing the `selectedDuration`. When clicked, a `DropdownMenu` appears with options (5 to 10 minutes). Selecting an option updates the `selectedDuration`.
 
-### 2.8. `BreathingExerciseCard` - Exercise Details 🌬️
+### `BreathingExerciseCard` - Exercise Details 🌬️
 
 ```kotlin
 @Composable
@@ -246,7 +246,7 @@ fun BreathingExerciseCard(exercise: BreathingExercise, exerciseNumber: Int) {
 * **Purpose:** Displays a single breathing exercise with its details.
 * **Features:** A `Card` with rounded corners. Inside, it shows an `Air` icon, the exercise number, and the inhale, hold, and exhale times. 🧘‍♀️
 
-### 2.9. `WorkoutCard` - Workout Exercise Details 🏋️‍♀️
+### `WorkoutCard` - Workout Exercise Details 🏋️‍♀️
 
 ```kotlin
 @Composable
@@ -270,7 +270,7 @@ fun WorkoutCard(workout: Workout) {
 * **Purpose:** Displays a single workout exercise with its details.
 * **Features:** A `Card` with rounded corners. It shows the exercise image, name, sets, reps, rest time, and lists the muscle groups worked and equipment used. 💪
 
-### 2.10. `FoodCategoryCardWithNutrition` - Food Recommendations 🍎
+### `FoodCategoryCardWithNutrition` - Food Recommendations 🍎
 
 ```kotlin
 @Composable
@@ -298,7 +298,7 @@ fun FoodCategoryCardWithNutrition(title: String, foods: List<FoodItem>) {
 * **Purpose:** Displays a category of food recommendations with their calorie and protein content.
 * **Features:** A `Card` with rounded corners and a title (e.g., "Muscle Gain"). It then lists each food item with its name, calories, and protein. 🥦🍗
 
-### 2.11. `MetricExplanationCard` & `RecommendationCard` - Health Insights 💡
+### `MetricExplanationCard` & `RecommendationCard` - Health Insights 💡
 
 * **`MetricExplanationCard(title: String, explanation: String)`**:
     * **Purpose:** Provides detailed explanations for various health metrics (BMI, BMR, etc.).
@@ -307,7 +307,7 @@ fun FoodCategoryCardWithNutrition(title: String, foods: List<FoodItem>) {
     * **Purpose:** Summarizes personalized health recommendations based on calculated metrics.
     * **Features:** A `Card` that shows your BMI status (Underweight, Normal, Overweight, Obese) with a tip, and then lists your BMR, TDEE, personalized protein intake breakdown, and daily water goal with helpful suggestions. ❤️💧
 
-### 2.12. `AnimatedSavedWorkoutItem` - Animated Saved Workout Item ✨
+### `AnimatedSavedWorkoutItem` - Animated Saved Workout Item ✨
 
 ```kotlin
 @Composable
@@ -344,9 +344,9 @@ fun AnimatedSavedWorkoutItem(savedWorkout: SavedWorkout, onWorkoutClick: (SavedW
 
 Now let's look at the main screens of your application and what they do.
 
-### 3.1. Authentication & User Management
+### Authentication & User Management
 
-#### 3.1.1. `LoginScreen.kt` - Welcome Back! 🔐
+#### `LoginScreen.kt` - Welcome Back! 🔐
 
 This is where users sign into their Genni account.
 
@@ -363,7 +363,7 @@ This is where users sign into their Genni account.
     * Displays `Toast` messages for success or error. 🎉🚫
     * Navigates to `HomeScreen` on successful login.
 
-#### 3.1.2. `SignUpScreen.kt` - Create Your Account! 📝
+#### `SignUpScreen.kt` - Create Your Account! 📝
 
 This screen allows new users to register for the app.
 
@@ -381,7 +381,7 @@ This screen allows new users to register for the app.
     * Calls `userViewModel.registerUser()` to save the new user's data.
     * Displays `Toast` messages for success or error and navigates to `LoginScreen` on success. 🎉
 
-#### 3.1.3. `FPContd.kt` & `ForgotPasswordScreen.kt` - Password Reset 🔑
+#### `FPContd.kt` & `ForgotPasswordScreen.kt` - Password Reset 🔑
 
 These screens handle the process of resetting a user's password.
 
@@ -401,7 +401,7 @@ These screens handle the process of resetting a user's password.
         * Calls `fpViewModel.updatePassword()` to change the password.
         * Navigates back to `LoginScreen` on successful update. 🎉
 
-#### 3.1.4. `ProfileScreen.kt` - Your Personal Dashboard 👤
+#### `ProfileScreen.kt` - Your Personal Dashboard 👤
 
 This screen displays all the registered information about the current user.
 
@@ -413,7 +413,7 @@ This screen displays all the registered information about the current user.
 * **Logic (via `AuthViewModel`):**
     * Collects `currentUser` data from `AuthViewModel` to populate the UI. If no user is logged in, it shows a "No user data found" message. 😔
 
-#### 3.1.5. `SettingsScreen.kt` - Customize Your App ⚙️
+#### `SettingsScreen.kt` - Customize Your App ⚙️
 
 This screen allows users to adjust app-wide settings.
 
@@ -425,9 +425,9 @@ This screen allows users to adjust app-wide settings.
     * Observes settings states from `AppSettingsViewModel`.
     * The "Logout" button calls `authViewModel.logout()`, then navigates to `LoginScreen` and shows a `Toast`. 👋
 
-### 3.2. Workout Generation & Simulation
+### Workout Generation & Simulation
 
-#### 3.2.1. `HomeScreen.kt` - Design Your Workout! 🏠
+#### `HomeScreen.kt` - Design Your Workout! 🏠
 
 This is the main screen where users can customize and generate their workout plans.
 
@@ -445,7 +445,7 @@ This is the main screen where users can customize and generate their workout pla
         * **`DurationSelector`**: A slider to select the desired workout duration in minutes. ⏰
     * **Workout Generation**: The large `PlayButton` calls `homeViewModel.generateWorkout()`, which uses the selected parameters to create a workout plan. It then navigates to `GeneratedWorkoutScreen`.
 
-#### 3.2.2. `GeneratedWorkoutScreen.kt` - Your Custom Plan! 📋
+#### `GeneratedWorkoutScreen.kt` - Your Custom Plan! 📋
 
 This screen displays the workout plan that was just generated based on the user's selections.
 
@@ -461,7 +461,7 @@ This screen displays the workout plan that was just generated based on the user'
         * The "Save" button calls `workoutViewModel.saveCurrentWorkout()`, passing the entered name and the current user's ID.
         * Displays `Toast` messages for success or error. 🎉🚫
 
-#### 3.2.3. `WorkoutSimulatorScreen.kt` - Time to Sweat! 🏃‍♂️
+#### `WorkoutSimulatorScreen.kt` - Time to Sweat! 🏃‍♂️
 
 This is the interactive screen where users perform their generated workout.
 
@@ -481,7 +481,7 @@ This is the interactive screen where users perform their generated workout.
     * Calls `viewModel.skipSet()`, `viewModel.skipExercise()`, `viewModel.pauseWorkout()`, `viewModel.unpauseWorkout()`, and `viewModel.startWorkout()` based on button clicks.
     * When all exercises are completed, `onWorkoutCompleted()` is called to navigate away.
 
-#### 3.2.4. `SavedWorkoutsScreen.kt` - Your Workout History 💾
+#### `SavedWorkoutsScreen.kt` - Your Workout History 💾
 
 This screen displays all the workouts a user has previously saved.
 
@@ -493,13 +493,13 @@ This screen displays all the workouts a user has previously saved.
     * Uses `LaunchedEffect` to automatically load saved workouts for the current user when the screen is opened or the user changes. 🚀
     * Each `AnimatedSavedWorkoutItem` is clickable. Tapping it loads that specific workout into `WorkoutViewModel` and navigates to `GeneratedWorkoutScreen` so the user can review or start it again.
 
-#### 3.2.5. `UploadWorkoutScreen.kt` - (Currently Unused) ⬆️
+#### `UploadWorkoutScreen.kt` - (Currently Unused) ⬆️
 
 * As mentioned, this screen is currently commented out. Its original purpose was likely for an admin or developer to upload default workout data to the backend. 🚧
 
-### 3.3. Health & Wellness
+### Health & Wellness
 
-#### 3.3.1. `HealthStatusScreen.kt` - Your Health Snapshot ❤️
+#### `HealthStatusScreen.kt` - Your Health Snapshot ❤️
 
 This screen displays calculated health metrics for the user.
 
@@ -514,7 +514,7 @@ This screen displays calculated health metrics for the user.
     * Uses `LaunchedEffect` to automatically populate the `HCViewModel` with the `currentUser`'s data (weight, height, age) and then triggers the `hcViewModel.calculate()` function to compute the metrics. 🧠
     * The results are observed from `HCViewModel`'s `StateFlow`s.
 
-#### 3.3.2. `HealthMetricsExplanationScreen.kt` - Understanding Your Health 💡
+#### `HealthMetricsExplanationScreen.kt` - Understanding Your Health 💡
 
 This screen provides detailed explanations for each health metric.
 
@@ -527,7 +527,7 @@ This screen provides detailed explanations for each health metric.
     * Each `MetricExplanationCard` provides a detailed text explanation for a specific metric (e.g., what BMI is, how BMR works). 📖
     * The `RecommendationCard` summarizes personalized tips based on the user's calculated BMI, BFP, and other metrics. It even suggests protein distribution across meals and water intake breakdown! 🎯💧
 
-#### 3.3.3. `FoodRecommScreen.kt` - What to Eat! 🍎
+#### `FoodRecommScreen.kt` - What to Eat! 🍎
 
 This screen provides food recommendations based on the user's health metrics and goals.
 
@@ -541,7 +541,7 @@ This screen provides food recommendations based on the user's health metrics and
     * Determines the `recommendedCategory` (Muscle Gain, Fat Loss, Overall Wellness) based on BMI and BFP.
     * Displays a curated list of `FoodItem`s (name, calories, protein) for the recommended category and for general healthy snacks.
 
-#### 3.3.4. `BreathingExercisesScreen.kt` - Calm Your Mind 🌬️
+#### `BreathingExercisesScreen.kt` - Calm Your Mind 🌬️
 
 This screen allows users to generate and view breathing exercise sessions.
 
@@ -555,7 +555,7 @@ This screen allows users to generate and view breathing exercise sessions.
     * Displays the generated exercises from `beViewModel.breathingExercises`.
     * The `StartButton` navigates to `BESimulatorScreen`.
 
-#### 3.3.5. `BESimulatorScreen.kt` - Breathe In, Breathe Out 🧘‍♀️
+#### `BESimulatorScreen.kt` - Breathe In, Breathe Out 🧘‍♀️
 
 This screen provides an interactive guided breathing exercise experience.
 
@@ -572,7 +572,7 @@ This screen provides an interactive guided breathing exercise experience.
     * The "Pause/Resume" button calls `beViewModel.pause()` or `beViewModel.resume()`.
     * When the session is completed, `onBreathingSessionCompleted()` is called.
 
-### 3.4. `AboutScreen.kt` - Learn About Genni ℹ️
+### `AboutScreen.kt` - Learn About Genni ℹ️
 
 This screen provides information about the Genni application.
 
@@ -589,7 +589,7 @@ This screen provides information about the Genni application.
 
 ViewModels are crucial for separating UI logic from the UI itself. They hold and manage data, making sure it survives screen rotations and other configuration changes.
 
-### 4.1. `AuthViewModel.kt` - User Authentication 🔐
+### `AuthViewModel.kt` - User Authentication 🔐
 
 * **Purpose:** Handles user login, logout, and manages the current authenticated user's state.
 * **Key States:**
@@ -600,14 +600,14 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
     * `authenticateUser()`: Attempts to log in a user using provided credentials.
     * `logout()`: Signs the user out.
 
-### 4.2. `UserViewModel.kt` - User Data Management 👤
+### `UserViewModel.kt` - User Data Management 👤
 
 * **Purpose:** Manages user registration and authentication details.
 * **Key Functions:**
     * `registerUser()`: Adds a new user to the database (likely Firestore, given the code). It generates a `userID` and saves the user's data.
     * `authenticateUser()`: Verifies user credentials against the database.
 
-### 4.3. `HomeViewModel.kt` - Workout Customization Logic 🏠
+### `HomeViewModel.kt` - Workout Customization Logic 🏠
 
 * **Purpose:** Manages the user's selections for workout generation.
 * **Key States:**
@@ -621,7 +621,7 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
     * `setMuscleGroups()`, `setSetsAndReps()`, `setEquipment()`, `setDuration()`: Update the respective workout parameters based on user input.
     * `generateWorkout()`: Uses the selected parameters to generate a workout plan (by interacting with `WorkoutViewModel`).
 
-### 4.4. `WorkoutViewModel.kt` - Workout Engine 🏋️‍♀️
+### `WorkoutViewModel.kt` - Workout Engine 🏋️‍♀️
 
 * **Purpose:** Manages the generation, execution, and saving of workout routines.
 * **Key States:**
@@ -642,7 +642,7 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
     * `setCurrentWorkout()`, `loadWorkout()`: Functions to set or load a specific workout.
     * `deleteSavedWorkout()`: Removes a saved workout.
 
-### 4.5. `HCViewModel.kt` - Health Calculations 🧠
+### `HCViewModel.kt` - Health Calculations 🧠
 
 * **Purpose:** Performs various health calculations (BMI, BMR, BFP, TDEE, protein/water intake) and manages their input/output states.
 * **Key States:**
@@ -653,7 +653,7 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
     * `onWeightChange()`, `onHeightChange()`, etc.: Update input states.
     * `calculate()`: Performs all the health metric calculations based on the input data. This is where the magic happens! ✨
 
-### 4.6. `BEViewModel.kt` - Breathing Exercises 🌬️
+### `BEViewModel.kt` - Breathing Exercises 🌬️
 
 * **Purpose:** Manages the generation and simulation of breathing exercises.
 * **Key States:**
@@ -664,7 +664,7 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
     * `startBreathingSession()`: Initiates the breathing exercise timer and phases. ⏱️
     * `pause()`, `resume()`: Control functions for the breathing session.
 
-### 4.7. `ForgetPasswordViewModel.kt` - Password Reset Logic 🔑
+### `ForgetPasswordViewModel.kt` - Password Reset Logic 🔑
 
 * **Purpose:** Handles the logic for the "Forgot Password" flow.
 * **Key States:**
@@ -676,7 +676,7 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
     * `updatePassword()`: Sets the new password after verification.
     * `onEmailChange()`, `onNavigateHandled()`: Helper functions for state management.
 
-### 4.8. `AppSettingsViewModel.kt` - App Preferences ⚙️
+### `AppSettingsViewModel.kt` - App Preferences ⚙️
 
 * **Purpose:** Manages application-wide settings and preferences.
 * **Key States:**
@@ -687,7 +687,7 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
 * **Key Functions:**
     * `toggleDarkTheme()`, `toggleNotifications()`, `toggleMetric()`, `toggleAutoStart()`: Functions to change these settings.
 
-### 4.9. `AdminViewModel.kt` - Admin Functions 👑
+### `AdminViewModel.kt` - Admin Functions 👑
 
 * **Purpose:** Manages administrative functionalities (though less code is provided for this).
 * **Key States:**
@@ -704,7 +704,7 @@ ViewModels are crucial for separating UI logic from the UI itself. They hold and
 
 These are the blueprints for the data your app uses and the different states your UI can be in.
 
-### 5.1. Data Models (`models` package) 📦
+### Data Models (`models` package) 📦
 
 * **`User`**: Represents a user, holding details like `userID`, `firstName`, `lastName`, `age`, `gender`, `goals`, `yearsOfTraining`, `username`, `password`, `email`, `weight`, `height`, `profilePic` (URI as string), and `foodRecommendations`. 🧑‍💻
 * **`Workout`**: Represents a single exercise, with properties like `index`, `name`, `muscleGroupWorked`, `sets`, `reps`, `restTime`, `imageResID`, and `equipmentUsed`. 🏋️‍♀️
@@ -713,7 +713,7 @@ These are the blueprints for the data your app uses and the different states you
 * **`BreathingExercise`**: Represents a single breathing exercise, with `inhaleTime`, `holdTime`, and `exhaleTime`. 🌬️
 * **`FoodItem`**: Represents a food item with `name`, `calories`, and `protein` content. 🍎
 
-### 5.2. UI States (`states` package) 🚦
+### UI States (`states` package) 🚦
 
 These are `sealed classes` that define the different possible states for asynchronous operations (like authentication or password reset), making it easy for your UI to react accordingly.
 
