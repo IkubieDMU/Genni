@@ -1,5 +1,3 @@
-Let's break down these Kotlin ViewModel files and understand what each one does! Think of ViewModels as the brains behind your app's screens, handling all the logic and data so your screen can just focus on looking pretty. 🧠✨
-
 ---
 
 ### 1. `WorkoutViewModel.kt` 💪📊
