@@ -18,9 +18,6 @@
 ```bash
 git clone https://github.com/IkubieDMU/Genni.git
 ```
-
-Here is the comprehensive, simple, and easy-to-follow documentation for your entire Genni project, based on all the code you've provided! I'll break down everything clearly and use plenty of emojis to make it fun. 🚀✨
-
 ---
 
 # Genni App: Full Code Documentation 📱💪
