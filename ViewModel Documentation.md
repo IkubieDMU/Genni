@@ -1,5 +1,3 @@
----
-
 ### 1. `WorkoutViewModel.kt` 💪📊
 
 This ViewModel is like your personal fitness trainer and record keeper! It manages everything related to workouts, from fetching exercises to tracking your progress and saving your achievements.
