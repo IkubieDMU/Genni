@@ -6,6 +6,6 @@ data class WorkoutDTO(
     val sets: Int = 0,
     val reps: Int = 0,
     val restTime: Int = 0,
-    val imageName: String = "", // Use a string identifier instead of drawable
+    val imageName: String = "",
     val equipmentUsed: List<String> = emptyList()
 )
