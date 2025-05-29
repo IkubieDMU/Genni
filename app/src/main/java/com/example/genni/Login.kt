@@ -48,7 +48,7 @@ fun LoginScreen(nc: NavController, authViewModel: AuthViewModel, userViewModel: 
     val authState by authViewModel.authState.collectAsState()
     val context = LocalContext.current
 
-    Box(
+    Box( // Background
         modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(emeraldGreen, deepPurple, deepPurple))),
         contentAlignment = Alignment.Center
     ) {

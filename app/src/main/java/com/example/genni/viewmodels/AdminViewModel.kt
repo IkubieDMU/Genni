@@ -56,8 +56,8 @@ class AdminViewModel: ViewModel() {
 
     fun checkAdminInDB(username: String, password: String, callBack: (Admin?) -> Unit) {
         db.collection("Admins")
-            .whereEqualTo("username", username) // ✅ check if username is in the Admin Collection
-            .whereEqualTo("password", password) // ✅ check if password is in the Admin Collection
+            .whereEqualTo("username", username) // check if username is in the Admin Collection
+            .whereEqualTo("password", password) // check if password is in the Admin Collection
             .get()
             .addOnSuccessListener { result ->
                 // If one user in the Firestore query, convert the first result into a User object and pass it to the callback

@@ -80,7 +80,6 @@ fun AboutScreen() {
 
         val features = listOf(
             "🏋️‍♂️ Personalized Workouts: Generate custom workout plans based on your fitness goals, experience level, and equipment availability.",
-            /*"📊 Progress Tracking: Log your sets, reps, and rest intervals to monitor your improvements over time.",*/
             "🧮 Health Metrics: Calculate BMI, FFMI, BMR, body fat %, and daily calorie needs with helpful insights.",
             "🧘‍♀️ Guided Breathing: Follow calming breathing exercises designed for stress relief and improved focus.",
             "💾 Save & Reuse Workouts: Store your favorite routines and easily access them for future workouts.",
@@ -104,7 +103,7 @@ fun AboutScreen() {
         // Credits & Version Info
         Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(emeraldGreen.copy(alpha = 0.2f)).padding(16.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "Developed by Your Team", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                Text(text = "Developed by Ikubie Nemieboka", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "Version 8.8.0", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
             }
